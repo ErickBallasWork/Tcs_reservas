@@ -77,6 +77,9 @@
   .panel {
     @apply rounded-xl border border-line bg-white p-[18px] max-md:p-3.5;
   }
+  .alert {
+    @apply rounded-[10px] border border-gold bg-gold-soft p-3 font-semibold text-gold-ink;
+  }
 }
 
 :root {

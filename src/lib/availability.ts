@@ -11,7 +11,7 @@ export const FIRST_SELECTABLE_DATE = format(
 export const DEFAULT_DATE = "2026-11-10";
 
 // Pending trainings also hold the slot while the Leader decides
-const ACTIVE_STATUSES = ["confirmed", "pending"];
+export const ACTIVE_STATUSES = ["confirmed", "pending"];
 
 function isOccupied(resourceId: string, date: string, hour: number) {
   return reservations.some(

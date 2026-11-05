@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import type { Role } from "@/types";
+import { setTokenProvider, setUnauthorizedHandler } from "@/lib/api/client";
 
 interface Session {
   email: string;
@@ -63,6 +64,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem(SESSION_KEY);
     } catch {}
   }, []);
+
+  useEffect(() => {
+    // TODO: with MSAL, return the Entra ID access token here
+    setTokenProvider(async () => null);
+    // Any 401 closes the session; the AppShell guard sends the user to /login
+    setUnauthorizedHandler(logout);
+    return () => setUnauthorizedHandler(null);
+  }, [logout]);
 
   return (
     <AuthContext.Provider

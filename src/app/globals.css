@@ -60,16 +60,24 @@
 
 @layer components {
   .btn {
-    @apply inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-lg bg-brand px-4 font-semibold text-white;
+    @apply inline-flex min-h-11 cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand px-4 font-semibold text-white shadow-sm transition duration-150 ease-out
+      hover:-translate-y-px hover:bg-brand-dark hover:shadow-md
+      active:translate-y-0 active:scale-[0.98] active:shadow-sm
+      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand
+      disabled:pointer-events-none disabled:opacity-60
+      motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100;
   }
   .btn-gold {
-    @apply bg-gold text-brand-dark;
+    @apply bg-gold text-brand-dark hover:bg-[#F2B705];
   }
   .btn-outline {
-    @apply border-[1.5px] border-brand bg-white text-brand;
+    @apply border-[1.5px] border-brand bg-white text-brand shadow-none hover:bg-soft hover:text-brand-dark hover:shadow-sm;
+  }
+  .spinner {
+    @apply inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent;
   }
   .field {
-    @apply min-h-11 w-full rounded-lg border border-[#8fa3c9] bg-white px-3;
+    @apply min-h-11 w-full rounded-lg border border-[#8fa3c9] bg-white px-3 transition hover:border-brand/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 disabled:opacity-60;
   }
   .field-label {
     @apply flex flex-col gap-1.5 text-[13px] font-semibold;

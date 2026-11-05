@@ -27,10 +27,12 @@ function DayButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "min-h-11 rounded-lg font-semibold text-ink",
+        "min-h-11 rounded-lg font-semibold text-ink transition-colors",
+        !disabled && "cursor-pointer hover:bg-soft",
         disabled && "cursor-not-allowed text-[#5a6b8f]/60",
         isMarked && "bg-gold-soft text-gold-ink",
-        isSelected && "bg-brand text-white",
+        isMarked && !disabled && "hover:bg-[#FFE79A]",
+        isSelected && "bg-brand text-white hover:bg-brand-dark",
       )}
     >
       {label}

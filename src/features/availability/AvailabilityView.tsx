@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { MonthCalendar, WeekStrip } from "@/components/shared/MonthCalendar";
 import { SlotCell } from "@/components/shared/SlotCell";
 import { Tag } from "@/components/shared/Tag";
+import { BookingForm } from "@/features/booking/BookingForm"; // <--- Tu formulario de reservas
 import {
   DEFAULT_DATE,
   FIRST_SELECTABLE_DATE,
@@ -41,6 +41,10 @@ export function AvailabilityView() {
   const [rangeValue, setRangeValue] = useState("morning");
   const [minCapacity, setMinCapacity] = useState("");
 
+  // Estado para controlar el Modal de Reserva
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedResource, setSelectedResource] = useState<string | undefined>(undefined);
+
   const markedDates = useMemo(() => getDaysWithReservations(), []);
   const activeBuildings = buildings.filter((b) => b.active);
   const hours = HOUR_RANGES.find((r) => r.value === rangeValue)!.hours;
@@ -59,7 +63,6 @@ export function AvailabilityView() {
 
   const rawTitle = format(parseISO(date), "EEEE d 'de' MMMM", { locale: es });
   const dateTitle = rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1);
-  const hasLaptops = rows.some((r) => r.type === "laptop");
 
   const calendarProps = {
     selected: date,
@@ -81,6 +84,11 @@ export function AvailabilityView() {
       ))}
     </select>
   );
+
+  const openModal = (resourceId?: string) => {
+    setSelectedResource(resourceId);
+    setIsModalOpen(true);
+  };
 
   return (
     <>
@@ -170,9 +178,14 @@ export function AvailabilityView() {
               <Tag variant="dark">Ocupado</Tag>
               <Tag variant="gold">Bloqueado por laboratorio</Tag>
               <span className="flex-1" />
-              <Link href={`/book?date=${date}`} className="btn btn-gold">
+              {/* Botón que abre el modal en lugar de usar Link */}
+              <button
+                type="button"
+                onClick={() => openModal()}
+                className="btn btn-gold"
+              >
                 Reservar
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -199,12 +212,13 @@ export function AvailabilityView() {
                 </Tag>
               ))}
             </div>
-            <Link
-              href={`/book?resource=${r.id}&date=${date}`}
+            <button
+              type="button"
+              onClick={() => openModal(r.id)}
               className="btn btn-gold"
             >
               Reservar
-            </Link>
+            </button>
             {r.type === "laptop" && (
               <small className="text-ink-soft">
                 Amarillo: bloqueada por laboratorio completo.
@@ -218,6 +232,26 @@ export function AvailabilityView() {
           </small>
         )}
       </div>
+
+      {/* --- MODAL FLOTANTE DE RESERVA --- */}
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4 backdrop-blur-sm">
+            {/* CAMBIA ESTA LÍNEA EXACTAMENTE ASÍ */}
+            <div className="panel relative max-h-[95vh] w-full max-w-[95vw] sm:max-w-7xl overflow-y-auto bg-white p-6 shadow-xl">
+              <div className="mb-4 flex items-center justify-between border-b border-line pb-3">
+                <h3 className="text-lg font-bold text-brand">Nueva reserva</h3>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-sm font-bold text-ink-soft hover:text-brand"
+                >
+                  ✕ Cerrar
+                </button>
+              </div>
+              <BookingForm />
+            </div>
+          </div>
+        )}
     </>
   );
 }

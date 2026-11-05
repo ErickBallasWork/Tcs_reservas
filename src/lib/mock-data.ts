@@ -89,6 +89,8 @@ export const reservations: Reservation[] = [
     },
 ];
 
+export const initialReservations = reservations;
+
 export const notifications: AppNotification[] = [
     { id: "n-1", message: "Tu reserva de Sala 101 fue reasignada.", read: false },
     { id: "n-2", message: "Tu solicitud de Entrenamiento fue rechazada.", read: false },

@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { homeByRole, navByRole } from "@/lib/nav";
 import { roleLabels } from "@/lib/labels";
+import { homeByRole, navByRole } from "@/lib/nav";
+import {
+  REQUIRE_NOTIFICATIONS,
+  useNotificationPermission,
+} from "@/lib/notifications";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
 
@@ -13,20 +17,41 @@ const MOBILE_SLOTS = 4;
 
 interface AppShellProps {
   title: string;
+  mobileTitle?: string;
   children: React.ReactNode;
 }
 
-export function AppShell({ title, children }: AppShellProps) {
-  const { role, setRole } = useAuth();
+export function AppShell({ title, mobileTitle, children }: AppShellProps) {
+  const { role, setRole, ready, session, logout } = useAuth();
+  const permission = useNotificationPermission();
   const pathname = usePathname();
   const router = useRouter();
   const [moreOpen, setMoreOpen] = useState(false);
+
+  // Access guard: needs a session and, when required, notification permission
+  useEffect(() => {
+    if (!ready || permission === null) return;
+    if (!session) {
+      router.replace("/login");
+    } else if (REQUIRE_NOTIFICATIONS && permission !== "granted") {
+      logout();
+      router.replace("/login");
+    }
+  }, [ready, permission, session, router, logout]);
+
+  const hasAccess =
+    ready &&
+    permission !== null &&
+    !!session &&
+    (!REQUIRE_NOTIFICATIONS || permission === "granted");
+
+  if (!hasAccess) return null;
 
   const items = navByRole[role];
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
 
-  // Mobile: if there are more than 4 items, show 3 + a "Más" button
+  // Mobile: with more than 4 items, show 3 + a "Más" button
   const overflow = items.length > MOBILE_SLOTS;
   const mobilePrimary = overflow ? items.slice(0, MOBILE_SLOTS - 1) : items;
   const mobileMore = overflow ? items.slice(MOBILE_SLOTS - 1) : [];
@@ -37,13 +62,18 @@ export function AppShell({ title, children }: AppShellProps) {
     router.push(homeByRole[next]);
   };
 
+  const handleLogout = () => {
+    logout();
+    router.replace("/login");
+  };
+
   // Temporary selector to test every role without a real login
   const roleSelect = (
     <select
       aria-label="Cambiar rol (demo)"
       value={role}
       onChange={(e) => handleRoleChange(e.target.value as Role)}
-      className="min-h-11 w-full rounded-lg border border-white/30 bg-white/10 px-3 text-sm text-white [&>option]:text-ink"
+      className="min-h-11 w-full cursor-pointer rounded-lg border border-white/30 bg-white/10 px-3 text-sm text-white transition-colors hover:bg-white/20 [&>option]:text-ink"
     >
       {(Object.keys(roleLabels) as Role[]).map((r) => (
         <option key={r} value={r}>
@@ -68,25 +98,33 @@ export function AppShell({ title, children }: AppShellProps) {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex min-h-11 items-center rounded-lg px-3",
-              isActive(item.href) && "bg-gold font-bold text-brand-dark",
+              "flex min-h-11 items-center rounded-lg px-3 transition-colors hover:bg-white/10",
+              isActive(item.href) &&
+                "bg-gold font-bold text-brand-dark hover:bg-gold",
             )}
           >
             {item.label}
           </Link>
         ))}
-        <div className="mt-auto pt-4">
-          <small className="block px-1 pb-1 text-[11px] uppercase opacity-60">
+        <div className="mt-auto flex flex-col gap-1.5 pt-4">
+          <small className="block px-1 text-[11px] uppercase opacity-60">
             Rol (demo)
           </small>
           {roleSelect}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex min-h-11 cursor-pointer items-center rounded-lg px-3 text-left text-sm transition-colors hover:bg-white/10"
+          >
+            Cerrar sesión
+          </button>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile header */}
         <header className="flex items-center justify-between gap-3 bg-brand p-5 text-lg font-bold text-white md:hidden">
-          <span>{title}</span>
+          <span>{mobileTitle ?? title}</span>
           <div className="w-36 text-sm font-normal">{roleSelect}</div>
         </header>
 
@@ -110,8 +148,8 @@ export function AppShell({ title, children }: AppShellProps) {
             href={item.href}
             onClick={() => setMoreOpen(false)}
             className={cn(
-              "flex min-h-14 flex-1 items-center justify-center text-xs font-semibold text-brand",
-              isActive(item.href) && "bg-gold text-brand-dark",
+              "flex min-h-14 flex-1 items-center justify-center text-xs font-semibold text-brand transition-colors active:bg-soft",
+              isActive(item.href) && "bg-gold text-brand-dark active:bg-gold",
             )}
           >
             {item.shortLabel}
@@ -123,9 +161,9 @@ export function AppShell({ title, children }: AppShellProps) {
               type="button"
               onClick={() => setMoreOpen((o) => !o)}
               className={cn(
-                "flex min-h-14 flex-1 items-center justify-center text-xs font-semibold text-brand",
+                "flex min-h-14 flex-1 cursor-pointer items-center justify-center text-xs font-semibold text-brand transition-colors active:bg-soft",
                 (moreOpen || mobileMore.some((i) => isActive(i.href))) &&
-                  "bg-gold text-brand-dark",
+                  "bg-gold text-brand-dark active:bg-gold",
               )}
             >
               Más
@@ -138,8 +176,9 @@ export function AppShell({ title, children }: AppShellProps) {
                     href={item.href}
                     onClick={() => setMoreOpen(false)}
                     className={cn(
-                      "flex min-h-11 items-center px-4 text-sm font-semibold text-brand",
-                      isActive(item.href) && "bg-gold text-brand-dark",
+                      "flex min-h-11 items-center px-4 text-sm font-semibold text-brand transition-colors hover:bg-soft",
+                      isActive(item.href) &&
+                        "bg-gold text-brand-dark hover:bg-gold",
                     )}
                   >
                     {item.label}

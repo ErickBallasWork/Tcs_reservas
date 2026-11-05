@@ -1,0 +1,322 @@
+// =============================================================================
+// Prisma Schema — App de Reserva de Salas y Laboratorio de IA
+// Provider  : Azure SQL (SQL Server)
+// Stack     : NestJS · Prisma · Vercel Serverless
+// HU/IF ref : HU-28, HU-29, IF-02, IF-03, IF-05, IF-08, IF-09, IF-10
+//
+// Alineado con el Diagrama ER oficial del proyecto.
+// Cambios vs borrador anterior:
+//   · USER : roles via tabla USER_ROLE (N:M), hostedDomain, fullName, sin sanctionUntil
+//   · ROLE : tabla propia (int PK)
+//   · RESOURCE : sin auto-referencia; laptops tienen tabla propia LAPTOP
+//   · LAPTOP : entidad separada con laboratorioId FK → Resource
+//   · RESERVATION_SLOT : reemplaza TimeSlot; soporta resourceId y laptopId nullable
+//   · REALLOCATION : tabla propia (antes embebida en Reservation)
+//   · SANCTION : tabla propia (antes campo sanctionUntil en User)
+//   · NOTIFICATION : sin FK a Reservation, agrega isRead
+//   · AUDIT_LOG : PK BigInt autoincrement, sin payload/ipAddress, eventDate
+// =============================================================================
+
+generator client {
+  provider      = "prisma-client-js"
+  // rhel-openssl-1.0.x es OBLIGATORIO para el runtime Linux de Vercel (IF-17)
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// USERS & ROLES  —  HU-24, BE-03, BE-04
+// =============================================================================
+
+/// Usuarios autenticados via Google OAuth.
+/// El dominio se valida en backend comprobando el claim `hd` del token (RNF-02).
+model User {
+  id           String   @id @default(uuid()) @db.UniqueIdentifier
+  googleId     String?  @unique @db.NVarChar(100)   // Opcional: ID único de Google
+  email        String   @unique @db.NVarChar(254)
+  fullName     String   @db.NVarChar(200)
+  hostedDomain String   @db.NVarChar(50)             // "tcs.com" | "pichincha.com"
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  // Relaciones
+  userRoles     UserRole[]
+  reservations  Reservation[]
+  approvals     Approval[]      @relation("ApproverApprovals")
+  reallocations Reallocation[]  @relation("ResponsibleReallocations")
+  sanctions     Sanction[]
+  checkIns      CheckIn[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+
+  @@map("USER")
+}
+
+/// Catálogo de roles del sistema.
+model Role {
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.NVarChar(100)
+
+  userRoles UserRole[]
+
+  @@map("ROLE")
+}
+
+/// Tabla intermedia USER ↔ ROLE (N:M). Un usuario puede tener varios roles.
+model UserRole {
+  userId String @db.UniqueIdentifier
+  roleId Int
+
+  user User @relation(fields: [userId], references: [id])
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@id([userId, roleId])
+  @@map("USER_ROLE")
+}
+
+// =============================================================================
+// CATALOG  —  HU-01, HU-02, HU-03, HU-04 / BE-06, IF-02
+// =============================================================================
+
+/// Edificio físico (TCS o Pichincha).
+model Building {
+  id       String  @id @default(uuid()) @db.UniqueIdentifier
+  name     String  @db.NVarChar(150)
+  address  String? @db.NVarChar(300)
+  isActive Boolean @default(true)
+
+  resources Resource[]
+
+  @@map("BUILDING")
+}
+
+/// Sala de reuniones o Laboratorio de IA.
+/// Las laptops son una entidad separada (LAPTOP) vinculada al laboratorio.
+model Resource {
+  id         String  @id @default(uuid()) @db.UniqueIdentifier
+  buildingId String  @db.UniqueIdentifier
+  name       String  @db.NVarChar(150)
+  type       String  @db.NVarChar(50)   // "MEETING_ROOM" | "AI_LAB" — validado en app
+  capacity   Int?
+  isActive   Boolean @default(true)
+
+  building Building @relation(fields: [buildingId], references: [id])
+
+  // Relaciones
+  laptops       Laptop[]
+  reservations  Reservation[]      @relation("ResourceReservations")
+  slots         ReservationSlot[]  @relation("ResourceSlots")
+  reallocFrom   Reallocation[]     @relation("PreviousResource")
+  reallocTo     Reallocation[]     @relation("NewResource")
+
+  @@map("RESOURCE")
+}
+
+/// Laptop de IA — siempre pertenece a un Laboratorio (Resource de tipo AI_LAB).
+model Laptop {
+  id           String  @id @default(uuid()) @db.UniqueIdentifier
+  laboratoryId String  @db.UniqueIdentifier
+  assetTag     String  @unique @db.NVarChar(100)
+  status       String  @db.NVarChar(50)   // "AVAILABLE" | "IN_USE" | "MAINTENANCE"
+  isActive     Boolean @default(true)
+
+  laboratory Resource @relation(fields: [laboratoryId], references: [id])
+
+  // Relaciones
+  reservations Reservation[]      @relation("LaptopReservations")
+  slots        ReservationSlot[]  @relation("LaptopSlots")
+
+  @@map("LAPTOP")
+}
+
+// =============================================================================
+// RESERVATIONS  —  HU-07 a HU-13 / BE-08 a BE-13
+// =============================================================================
+
+/// Reserva. resourceId y laptopId son mutuamente opcionales según el tipo:
+///   · Sala / Lab completo → resourceId, laptopId null
+///   · Solo laptop         → laptopId, resourceId null
+///   · Lab + laptops       → se crean reservas enlazadas por lógica de negocio
+model Reservation {
+  id              String   @id @default(uuid()) @db.UniqueIdentifier
+  userId          String   @db.UniqueIdentifier
+  resourceId      String?  @db.UniqueIdentifier  // Nullable si es solo laptop
+  laptopId        String?  @db.UniqueIdentifier  // Nullable si es sala/lab
+  reservationType String   @db.NVarChar(50)      // "ROOM" | "AI_LAB" | "LAPTOP" | "TRAINING"
+  purpose         String   @db.NVarChar(500)     // Motivo obligatorio (HU-10)
+  justification   String?  @db.NVarChar(1000)    // Justificación adicional
+  startDateTime   DateTime
+  endDateTime     DateTime
+  status          String   @db.NVarChar(50)      // "PENDING_APPROVAL"|"CONFIRMED"|"CANCELLED"|"COMPLETED"|"NO_SHOW"
+  createdAt       DateTime @default(now())
+
+  // Relaciones
+  user         User              @relation(fields: [userId], references: [id])
+  resource     Resource?         @relation("ResourceReservations", fields: [resourceId], references: [id])
+  laptop       Laptop?           @relation("LaptopReservations", fields: [laptopId], references: [id])
+
+  slots        ReservationSlot[]
+  approval     Approval?
+  reallocations Reallocation[]
+  checkIn      CheckIn?
+
+  @@index([userId, status])                      // Panel SPOC / Líder (BE-15, IF-11)
+  @@index([resourceId, startDateTime])           // Disponibilidad (BE-09, IF-11)
+  @@index([laptopId, startDateTime])             // Disponibilidad laptops (BE-09)
+  @@map("RESERVATION")
+}
+
+// =============================================================================
+// RESERVATION_SLOT  —  IF-03, BE-08, BE-11
+// Franja de 30 min. La clave única evita dobles reservas a nivel de BD.
+// resourceId y laptopId son nullable según el tipo del slot.
+// =============================================================================
+
+/// Franja de tiempo ocupada (30 min). La unicidad (resourceId|laptopId, slotStart)
+/// garantiza exclusión mutua sin locks explícitos → error P2002 → HTTP 409.
+model ReservationSlot {
+  id            String   @id @default(uuid()) @db.UniqueIdentifier
+  reservationId String   @db.UniqueIdentifier
+  resourceId    String?  @db.UniqueIdentifier  // Nullable
+  laptopId      String?  @db.UniqueIdentifier  // Nullable
+  slotStart     DateTime
+  slotEnd       DateTime
+
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+  resource    Resource?   @relation("ResourceSlots", fields: [resourceId], references: [id])
+  laptop      Laptop?     @relation("LaptopSlots", fields: [laptopId], references: [id])
+
+  // Claves únicas para anti-solapamiento (IF-03, BE-11)
+  @@unique([resourceId, slotStart])
+  @@unique([laptopId, slotStart])
+  @@index([resourceId, slotStart, slotEnd])
+  @@index([laptopId, slotStart, slotEnd])
+  @@map("RESERVATION_SLOT")
+}
+
+// =============================================================================
+// APPROVAL  —  HU-14, HU-15 / BE-14
+// Solo para reservas de tipo TRAINING (requiere aprobación de Líder).
+// =============================================================================
+
+model Approval {
+  id            String   @id @default(uuid()) @db.UniqueIdentifier
+  reservationId String   @unique @db.UniqueIdentifier  // 1:1 con Reservation
+  approverId    String   @db.UniqueIdentifier
+  status        String   @db.NVarChar(50)              // "PENDING"|"APPROVED"|"REJECTED"
+  comments      String?  @db.NVarChar(500)
+  decisionDate  DateTime?
+
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+  approver    User        @relation("ApproverApprovals", fields: [approverId], references: [id])
+
+  @@map("APPROVAL")
+}
+
+// =============================================================================
+// REALLOCATION  —  HU-17 / BE-16
+// Reasignación por SPOC de Edificio cuando hay conflicto de espacio.
+// =============================================================================
+
+model Reallocation {
+  id                 String   @id @default(uuid()) @db.UniqueIdentifier
+  reservationId      String   @db.UniqueIdentifier
+  previousResourceId String   @db.UniqueIdentifier
+  newResourceId      String   @db.UniqueIdentifier
+  responsibleUserId  String   @db.UniqueIdentifier
+  justification      String   @db.NVarChar(500)
+  reallocationDate   DateTime @default(now())
+
+  reservation      Reservation @relation(fields: [reservationId], references: [id])
+  previousResource Resource    @relation("PreviousResource", fields: [previousResourceId], references: [id])
+  newResource      Resource    @relation("NewResource", fields: [newResourceId], references: [id])
+  responsibleUser  User        @relation("ResponsibleReallocations", fields: [responsibleUserId], references: [id])
+
+  @@map("REALLOCATION")
+}
+
+// =============================================================================
+// SANCTION  —  HU-21, HU-22 / BE-19, BE-20
+// Bloqueo generado automáticamente por el job de No-Show.
+// La lógica de negocio consulta SANCTION activa antes de permitir nueva reserva.
+// =============================================================================
+
+model Sanction {
+  id            String   @id @default(uuid()) @db.UniqueIdentifier
+  userId        String   @db.UniqueIdentifier
+  reservationId String   @db.UniqueIdentifier
+  type          String   @db.NVarChar(50)   // "NO_SHOW"
+  startDate     DateTime
+  endDate       DateTime
+  status        String   @db.NVarChar(50)   // "ACTIVE" | "LIFTED"
+
+  user        User        @relation(fields: [userId], references: [id])
+
+  @@index([userId, status])               // Consulta rápida de sanción activa
+  @@map("SANCTION")
+}
+
+// =============================================================================
+// CHECK_IN  —  HU-20 / BE-18
+// Registro de uso efectivo para evitar que el job marque la reserva como No-Show.
+// =============================================================================
+
+model CheckIn {
+  id            String   @id @default(uuid()) @db.UniqueIdentifier
+  reservationId String   @unique @db.UniqueIdentifier  // 1:1 con Reservation
+  userId        String   @db.UniqueIdentifier
+  checkInDate   DateTime @default(now())
+  method        String   @db.NVarChar(50)   // "BUTTON" | "QR" (decisión pendiente)
+
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+
+  @@map("CHECK_IN")
+}
+
+// =============================================================================
+// NOTIFICATION  —  HU-18, HU-19 / BE-17
+// Canal intercambiable: IN_APP primero; PUSH y EMAIL cuando se aprueben.
+// Sin FK a Reservation (canal genérico del sistema).
+// =============================================================================
+
+model Notification {
+  id      String   @id @default(uuid()) @db.UniqueIdentifier
+  userId  String   @db.UniqueIdentifier
+  channel String   @db.NVarChar(50)    // "IN_APP" | "PUSH" | "EMAIL"
+  title   String   @db.NVarChar(200)
+  message String   @db.NVarChar(1000)
+  isRead  Boolean  @default(false)
+  sentAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@map("NOTIFICATION")
+}
+
+// =============================================================================
+// AUDIT_LOG  —  HU-26, RNF-06 / BE-23, IF-09
+// Tabla de solo inserción (append-only).
+// El usuario svc_app NO tiene permisos UPDATE/DELETE sobre esta tabla (IF-08).
+// PK BigInt autoincrement para máximo rendimiento en inserciones masivas.
+// =============================================================================
+
+model AuditLog {
+  id        BigInt   @id @default(autoincrement())
+  userId    String   @db.UniqueIdentifier
+  action    String   @db.NVarChar(50)   // "CREATE"|"UPDATE"|"DELETE"|"APPROVE"|"REJECT"|"REASSIGN"|"REGULARIZE"
+  entity    String   @db.NVarChar(100)
+  entityId  String   @db.NVarChar(100)
+  eventDate DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([userId, eventDate])
+  @@map("AUDIT_LOG")
+}

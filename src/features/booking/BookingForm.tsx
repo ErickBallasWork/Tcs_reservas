@@ -20,21 +20,30 @@ const activeResources = resources.filter((r) => r.active);
 export function BookingForm() {
   const params = useSearchParams();
 
-  // Prefill from /book?resource=...&date=... (links from the availability screen)
+  // En BookingForm.tsx, dentro de la inicialización del estado:
   const [initial] = useState(() => {
     const preset = activeResources.find((r) => r.id === params.get("resource"));
     const dateParam = params.get("date");
+    const hourParam = params.get("hour"); // <--- Captura la hora seleccionada
+    
     const date =
       dateParam && dateParam >= FIRST_SELECTABLE_DATE
         ? dateParam
         : FIRST_SELECTABLE_DATE;
+        
     const type: ResourceType = preset?.type ?? "room";
+    
+    // Si viene una hora específica, la usamos como inicio y sumamos 1 hora para el fin por defecto
+    const startHour = hourParam ? Number(hourParam) : 10;
+    const endHour = startHour + 1;
+    const pad = (n: number) => String(n).padStart(2, "0");
+
     return {
       type,
       resourceId:
         preset?.id ?? activeResources.find((r) => r.type === type)!.id,
-      start: `${date}T10:00`,
-      end: `${date}T12:00`,
+      start: `${date}T${pad(startHour)}:00`,
+      end: `${date}T${pad(endHour)}:00`,
     };
   });
 

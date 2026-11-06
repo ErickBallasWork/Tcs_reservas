@@ -116,3 +116,43 @@ export const notificationPermissionLabels = {
     body: 'Recibirás avisos de tus reservas.',
   },
 };
+
+export const roleFieldLabels = {
+  legend: 'Roles',
+  building: 'Edificio que administra',
+  chooseBuilding: 'Elige un edificio',
+};
+
+export const accessRequestLabels = {
+  title: 'Solicitudes de acceso',
+  tabs: { PENDING: 'Pendientes', APPROVED: 'Aprobadas', REJECTED: 'Rechazadas' },
+  empty: {
+    PENDING: 'No hay solicitudes pendientes.',
+    APPROVED: 'Todavía no hay solicitudes aprobadas.',
+    REJECTED: 'Todavía no hay solicitudes rechazadas.',
+  },
+  kind: { NEW_USER: 'Usuario nuevo', NEW_DEVICE: 'Dispositivo nuevo' },
+  loading: 'Cargando solicitudes…',
+  retry: 'Reintentar',
+  requestedAt: 'Solicitada',
+  decidedBy: (name: string) => `Resuelta por ${name}`,
+  device: 'Dispositivo',
+  department: 'Departamento',
+  approve: 'Aprobar',
+  reject: 'Rechazar',
+  approveTitle: 'Aprobar solicitud',
+  approveNewUser: (name: string, email: string) =>
+    `${name} (${email}) será dada de alta con los roles que elijas.`,
+  approveNewDevice: (name: string, email: string) =>
+    `${name} (${email}) ya tiene cuenta. Se autorizará este dispositivo nuevo.`,
+  confirmApprove: 'Aprobar',
+  rejectTitle: 'Rechazar solicitud',
+  rejectIntro: 'La persona verá este motivo.',
+  rejectReason: 'Motivo del rechazo',
+  confirmReject: 'Rechazar',
+  cancel: 'Cancelar',
+  saving: 'Guardando…',
+  previous: 'Anterior',
+  next: 'Siguiente',
+  page: (page: number, total: number) => `Página ${page} de ${total}`,
+};

@@ -5,6 +5,7 @@ import type {
   Role,
 } from '@/api/types';
 import type { BookingProblem } from '@/lib/booking-checks';
+import type { ReallocationProblem } from '@/lib/reallocation-form';
 
 export const appLabels = {
   title: 'Reservas TCS · Banco Pichincha',
@@ -438,6 +439,11 @@ export const myReservationsLabels = {
   cancel: 'Cancelar',
   tooLate: 'Faltan menos de 24 horas: ya no se puede cancelar. Aún puedes editar el detalle.',
   seriesBadge: (index: number, total: number) => `Serie · ${index} de ${total}`,
+  reallocatedBadge: 'Reasignada',
+  reallocatedBefore: (room: string, range: string) => `Antes: ${room}, ${range}`,
+  reallocatedReason: (reason: string) => `Motivo: ${reason}`,
+  reallocatedCancel:
+    'Fue reasignada por un evento con cliente: puedes cancelarla aunque falte poco.',
   attendees: (count: number) => `${count} ${count === 1 ? 'persona' : 'personas'}`,
   cancelTitle: 'Cancelar reserva',
   cancelConfirm: 'Cancelar reserva',
@@ -566,4 +572,63 @@ export const dashboardLabels = {
   previous: 'Anterior',
   next: 'Siguiente',
   pageOf: (page: number, pages: number) => `Página ${page} de ${pages}`,
+};
+
+export const spocAgendaLabels = {
+  title: 'Agenda de salas',
+  mobileTitle: 'Agenda',
+  intro:
+    'Reservas de las salas de tus edificios. Cuando surja un evento con cliente, reasigna una reserva a otra sala u otro horario: el asociado recibe un aviso con tu justificación.',
+  loading: 'Cargando la agenda…',
+  retry: 'Reintentar',
+  building: 'Edificio',
+  day: 'Día',
+  today: 'Hoy',
+  previousDay: 'Día anterior',
+  nextDay: 'Día siguiente',
+  room: 'Sala',
+  allRooms: 'Todas las salas',
+  empty: 'No hay reservas este día.',
+  noRooms: 'Este edificio no tiene salas activas.',
+  gridLabel: 'Agenda del día por sala',
+  roomCapacity: (capacity: number) => `${capacity} ${capacity === 1 ? 'persona' : 'personas'}`,
+  attendees: (count: number) => `${count} ${count === 1 ? 'persona' : 'personas'}`,
+  reallocated: 'Reasignada',
+  series: 'Serie',
+  reassign: 'Reasignar',
+  reassignAria: (owner: string, range: string) => `Reasignar la reserva de ${owner}, ${range}`,
+  notMovable: 'No se puede mover',
+  moved: 'Reserva reasignada. El asociado ya recibió el aviso.',
+  dismiss: 'Cerrar aviso',
+};
+
+export const reallocationLabels = {
+  title: 'Reasignar reserva',
+  description: (owner: string) =>
+    `Mueve la reserva de ${owner} a otra sala u otro horario. Recibirá un aviso con tu justificación.`,
+  current: 'Reserva actual',
+  newRoom: 'Sala nueva',
+  roomOption: (name: string, capacity: number) => `${name} · hasta ${capacity}`,
+  startDate: 'Fecha de inicio',
+  startTime: 'Hora de inicio',
+  endDate: 'Fecha de fin',
+  endTime: 'Hora de fin',
+  justification: 'Justificación',
+  justificationHint: 'La verá el asociado en su aviso.',
+  counter: (count: number, max: number) => `${count}/${max}`,
+  before: 'Antes',
+  after: 'Después',
+  pendingNote: 'Está pendiente de aprobación: seguirá pendiente y el Líder recibirá un aviso.',
+  seriesNote: 'Forma parte de una serie: solo se mueve esta fecha.',
+  noAdvanceNote: 'No aplica el mínimo de 24 horas de anticipación.',
+  submit: 'Reasignar',
+  saving: 'Reasignando…',
+  cancel: 'Cancelar',
+  problems: {
+    JUSTIFICATION_REQUIRED: 'Escribe la justificación del cambio.',
+    JUSTIFICATION_TOO_LONG: 'La justificación no puede superar los 1000 caracteres.',
+    END_NOT_AFTER_START: 'La hora de fin debe ser posterior a la de inicio.',
+    ATTENDEES_EXCEED_CAPACITY: 'La sala elegida no tiene capacidad para los asistentes.',
+    NOTHING_TO_CHANGE: 'Cambia la sala o el horario para continuar.',
+  } satisfies Record<ReallocationProblem, string>,
 };

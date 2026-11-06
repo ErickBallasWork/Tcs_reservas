@@ -18,7 +18,7 @@ interface BookingFieldsProps {
   onChange: (patch: Partial<BookingFormValues>) => void;
 }
 
-function TimeSelect({
+export function TimeSelect({
   label,
   value,
   onChange,

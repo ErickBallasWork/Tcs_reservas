@@ -64,7 +64,7 @@ export const errorMessages: Record<ApiErrorCode, string> = {
   NOT_PENDING: 'La reserva ya no está pendiente.',
   NOT_REALLOCATABLE: 'Esta reserva no se puede reasignar.',
   NOT_YOUR_APPROVAL: 'Esta solicitud le corresponde a otra persona.',
-  NOT_YOUR_BUILDING: 'Esta reserva no pertenece a tu edificio.',
+  NOT_YOUR_BUILDING: 'Solo puedes gestionar las salas de los edificios que administras.',
   NO_TOKEN: 'Inicia sesión para continuar.',
   ONLY_ROOMS: 'Solo se pueden reasignar salas de reuniones.',
   OUTSIDE_CHECKIN_WINDOW: 'Fuera de la ventana para registrar el uso.',

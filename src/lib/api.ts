@@ -1,16 +1,28 @@
 import {
+  ApiAuditLog,
   ApiAvailabilityItem,
   ApiBuilding,
-  AuthConfigResponse,
   ApiError,
   ApiErrorResponse,
   ApiNotification,
   ApiReservation,
   ApiResource,
   ApiResourceAvailability,
+  ApiSanction,
+  AuthConfigResponse,
   AuthSessionResponse,
+  CreateBuildingPayload,
   CreateReservationPayload,
+  CreateResourcePayload,
   CurrentUser,
+  DashboardMetrics,
+  DecideApprovalPayload,
+  DepartmentUsageRow,
+  FutureReservationAffected,
+  OccupancyReportRow,
+  ReallocatePayload,
+  UpdateBuildingPayload,
+  UpdateResourcePayload,
 } from '@/types/api';
 
 const API_BASE_URL =
@@ -139,10 +151,11 @@ export const api = {
     getTree: () => apiFetch<ApiBuilding[]>('/catalog/tree'),
     getBuildings: (includeInactive = false) =>
       apiFetch<ApiBuilding[]>(`/buildings?includeInactive=${includeInactive}`),
-    getResources: (params?: { buildingId?: string; type?: string }) => {
+    getResources: (params?: { buildingId?: string; type?: string; includeInactive?: boolean }) => {
       const query = new URLSearchParams();
       if (params?.buildingId) query.set('buildingId', params.buildingId);
       if (params?.type) query.set('type', params.type);
+      if (params?.includeInactive) query.set('includeInactive', 'true');
       const qs = query.toString();
       return apiFetch<ApiResource[]>(`/resources${qs ? `?${qs}` : ''}`);
     },
@@ -227,5 +240,151 @@ export const api = {
         method: 'PATCH',
       }),
   },
-};
 
+  approvals: {
+    listPending: () => apiFetch<ApiReservation[]>('/approvals/pending'),
+    decide: (reservationId: string, payload: DecideApprovalPayload) =>
+      apiFetch<{ message: string; reservation: ApiReservation }>(`/approvals/${reservationId}`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
+  },
+
+  reallocations: {
+    reallocate: (reservationId: string, payload: ReallocatePayload) =>
+      apiFetch<{ message: string; reservation: ApiReservation }>(`/reservations/${reservationId}/reallocate`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
+  },
+
+  dashboard: {
+    metrics: (params?: { from?: string; to?: string; buildingId?: string }) => {
+      const query = new URLSearchParams();
+      if (params?.from) query.set('from', params.from);
+      if (params?.to) query.set('to', params.to);
+      if (params?.buildingId) query.set('buildingId', params.buildingId);
+      const qs = query.toString();
+      return apiFetch<DashboardMetrics>(`/dashboard/metrics${qs ? `?${qs}` : ''}`);
+    },
+
+    reservations: (params?: {
+      from?: string;
+      to?: string;
+      buildingId?: string;
+      status?: string;
+      purpose?: string;
+      page?: number;
+      pageSize?: number;
+    }) => {
+      const query = new URLSearchParams();
+      if (params?.from) query.set('from', params.from);
+      if (params?.to) query.set('to', params.to);
+      if (params?.buildingId) query.set('buildingId', params.buildingId);
+      if (params?.status) query.set('status', params.status);
+      if (params?.purpose) query.set('purpose', params.purpose);
+      if (params?.page) query.set('page', String(params.page));
+      if (params?.pageSize) query.set('pageSize', String(params.pageSize));
+      const qs = query.toString();
+      return apiFetch<{ items: ApiReservation[]; total: number; page: number; pageSize: number }>(
+        `/dashboard/reservations${qs ? `?${qs}` : ''}`
+      );
+    },
+  },
+
+  admin: {
+    buildings: {
+      list: (includeInactive = true) =>
+        apiFetch<ApiBuilding[]>(`/buildings?includeInactive=${includeInactive}`),
+      get: (id: string) => apiFetch<ApiBuilding>(`/buildings/${id}`),
+      create: (data: CreateBuildingPayload) =>
+        apiFetch<ApiBuilding>('/buildings', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      update: (id: string, data: UpdateBuildingPayload) =>
+        apiFetch<ApiBuilding>(`/buildings/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        }),
+    },
+
+    resources: {
+      list: (params?: { buildingId?: string; type?: string; includeInactive?: boolean }) => {
+        const query = new URLSearchParams();
+        if (params?.buildingId) query.set('buildingId', params.buildingId);
+        if (params?.type) query.set('type', params.type);
+        if (params?.includeInactive) query.set('includeInactive', 'true');
+        const qs = query.toString();
+        return apiFetch<ApiResource[]>(`/resources${qs ? `?${qs}` : ''}`);
+      },
+      get: (id: string) => apiFetch<ApiResource>(`/resources/${id}`),
+      futureReservations: (id: string) =>
+        apiFetch<FutureReservationAffected[]>(`/resources/${id}/future-reservations`),
+      create: (data: CreateResourcePayload) =>
+        apiFetch<ApiResource>('/resources', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      update: (id: string, data: UpdateResourcePayload) =>
+        apiFetch<ApiResource>(`/resources/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        }),
+    },
+
+    sanctions: {
+      list: (params?: { status?: string; page?: number; pageSize?: number }) => {
+        const query = new URLSearchParams();
+        if (params?.status) query.set('status', params.status);
+        if (params?.page) query.set('page', String(params.page));
+        if (params?.pageSize) query.set('pageSize', String(params.pageSize));
+        const qs = query.toString();
+        return apiFetch<{ items: ApiSanction[]; total: number; page: number; pageSize: number }>(
+          `/sanctions${qs ? `?${qs}` : ''}`
+        );
+      },
+      resolve: (id: string, justification: string) =>
+        apiFetch<{ message: string; sanction: ApiSanction }>(`/sanctions/${id}/resolve`, {
+          method: 'PATCH',
+          body: JSON.stringify({ justification }),
+        }),
+    },
+
+    reports: {
+      occupancy: (params: { from: string; to: string; buildingId?: string; minCapacity?: number }) => {
+        const query = new URLSearchParams({ from: params.from, to: params.to });
+        if (params.buildingId) query.set('buildingId', params.buildingId);
+        if (params.minCapacity) query.set('minCapacity', String(params.minCapacity));
+        return apiFetch<OccupancyReportRow[]>(`/reports/occupancy?${query.toString()}`);
+      },
+      usageByDepartment: (params: { from: string; to: string }) => {
+        const query = new URLSearchParams({ from: params.from, to: params.to });
+        return apiFetch<DepartmentUsageRow[]>(`/reports/usage-by-department?${query.toString()}`);
+      },
+      getOccupancyCsvUrl: (params: { from: string; to: string; buildingId?: string }) => {
+        const query = new URLSearchParams({ from: params.from, to: params.to });
+        if (params.buildingId) query.set('buildingId', params.buildingId);
+        return `${API_BASE_URL}/reports/occupancy/export?${query.toString()}`;
+      },
+      getDepartmentCsvUrl: (params: { from: string; to: string }) => {
+        const query = new URLSearchParams({ from: params.from, to: params.to });
+        return `${API_BASE_URL}/reports/usage-by-department/export?${query.toString()}`;
+      },
+    },
+
+    audit: {
+      list: (params?: { entity?: string; entityId?: string; page?: number; pageSize?: number }) => {
+        const query = new URLSearchParams();
+        if (params?.entity) query.set('entity', params.entity);
+        if (params?.entityId) query.set('entityId', params.entityId);
+        if (params?.page) query.set('page', String(params.page));
+        if (params?.pageSize) query.set('pageSize', String(params.pageSize));
+        const qs = query.toString();
+        return apiFetch<{ items: ApiAuditLog[]; total: number; page: number; pageSize: number }>(
+          `/audit${qs ? `?${qs}` : ''}`
+        );
+      },
+    },
+  },
+};

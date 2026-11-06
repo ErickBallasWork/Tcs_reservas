@@ -74,8 +74,19 @@ export interface ApiBuilding {
   isActive: boolean;
   resources?: ApiResource[];
   _count?: {
-    resources: number;
+    resources?: number;
   };
+}
+
+export interface CreateBuildingPayload {
+  name: string;
+  address?: string;
+}
+
+export interface UpdateBuildingPayload {
+  name?: string;
+  address?: string;
+  isActive?: boolean;
 }
 
 export interface ApiResource {
@@ -93,6 +104,42 @@ export interface ApiResource {
   building?: {
     id: string;
     name: string;
+  };
+  parent?: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface CreateResourcePayload {
+  buildingId: string;
+  type: BackendResourceType;
+  name: string;
+  capacity?: number;
+  equipment?: string;
+  rules?: string;
+  parentResourceId?: string;
+  assetTag?: string;
+}
+
+export interface UpdateResourcePayload {
+  name?: string;
+  capacity?: number;
+  equipment?: string;
+  rules?: string;
+  parentResourceId?: string;
+  assetTag?: string;
+  isActive?: boolean;
+}
+
+export interface FutureReservationAffected {
+  id: string;
+  startDateTime: string;
+  endDateTime: string;
+  status: string;
+  user: {
+    fullName: string;
+    email: string;
   };
 }
 
@@ -150,6 +197,7 @@ export interface ApiReservation {
     id: string;
     name: string;
     type: BackendResourceType;
+    buildingId?: string;
     building?: {
       id: string;
       name: string;
@@ -175,6 +223,18 @@ export interface ApiNotification {
   sentAt: string | null;
 }
 
+export interface DecideApprovalPayload {
+  decision: 'APPROVE' | 'REJECT';
+  comments?: string;
+}
+
+export interface ReallocatePayload {
+  newResourceId?: string;
+  newStartDateTime?: string;
+  newEndDateTime?: string;
+  justification: string;
+}
+
 export interface ApiSanction {
   id: string;
   userId: string;
@@ -190,22 +250,46 @@ export interface ApiSanction {
     id: string;
     fullName: string;
     email: string;
-    department?: string | null;
   };
+  resolvedBy: {
+    id: string;
+    fullName: string;
+  } | null;
   reservation: {
     id: string;
     startDateTime: string;
     endDateTime: string;
     resource: {
-      id: string;
       name: string;
-      building?: { name: string };
     };
   };
-  resolvedBy?: {
-    id: string;
-    fullName: string;
-  } | null;
+}
+
+export interface DashboardMetrics {
+  total: number;
+  byStatus: Record<BackendReservationStatus, number>;
+  byPurpose: Record<BackendPurpose, number>;
+  byReservationType: Record<BackendReservationType, number>;
+  noShowRate: number;
+}
+
+export interface OccupancyReportRow {
+  id: string;
+  name: string;
+  building: string;
+  type: string;
+  reservedHours: number;
+  availableHours: number;
+  occupancyRate: number;
+}
+
+export interface DepartmentUsageRow {
+  department: string;
+  users: number;
+  reservations: number;
+  checkedIn: number;
+  noShows: number;
+  cancelled: number;
 }
 
 export interface ApiAuditLog {
@@ -221,30 +305,4 @@ export interface ApiAuditLog {
     fullName: string;
     email: string;
   } | null;
-}
-
-export interface DashboardMetrics {
-  totalReservations: number;
-  byStatus: Record<string, number>;
-  byPurpose: Record<string, number>;
-  byType: Record<string, number>;
-  noShowRate: number;
-}
-
-export interface OccupancyReportItem {
-  id: string;
-  name: string;
-  type?: string;
-  buildingName?: string;
-  totalSlots: number;
-  occupiedSlots: number;
-  occupancyPercentage: number;
-}
-
-export interface UsageByDepartmentItem {
-  department: string;
-  totalReservations: number;
-  checkedInCount: number;
-  noShowCount: number;
-  cancelledCount: number;
 }

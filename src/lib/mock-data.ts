@@ -23,10 +23,3 @@ export const notifications: AppNotification[] = [
     read: true,
   },
 ];
-
-export const pendingUsage = {
-  resourceName: 'Sala 101',
-  slotLabel: 'hoy 10:00-12:00',
-};
-
-export const isUserBlocked = true;

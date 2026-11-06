@@ -1,6 +1,6 @@
-import { Suspense } from "react";
-import { AppShell } from "@/components/layout/AppShell";
-import { MyReservationsList } from "@/features/reservations/MyReservationList";
+import { Suspense } from 'react';
+import { AppShell } from '@/components/layout/AppShell';
+import { MyReservationsList } from '@/features/reservations/MyReservationList';
 
 export default function MyReservationsPage() {
   return (

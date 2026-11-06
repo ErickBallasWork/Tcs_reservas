@@ -1,56 +1,56 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { FeedbackDialog } from "@/components/shared/FeedbackDialog";
-import { Tag } from "@/components/shared/Tag";
-import { useAuth } from "@/lib/auth";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { FeedbackDialog } from '@/components/shared/FeedbackDialog';
+import { Tag } from '@/components/shared/Tag';
+import { useAuth } from '@/lib/auth';
 import {
   REQUIRE_NOTIFICATIONS,
   requestPermission,
   showSystemNotification,
-} from "@/lib/notifications";
+} from '@/lib/notifications';
 
-const ALLOWED_DOMAINS = ["@tcs.com", "@pichincha.com"];
+const ALLOWED_DOMAINS = ['@tcs.com', '@pichincha.com'];
 
-type BlockedReason = "denied" | "dismissed" | "unsupported";
+type BlockedReason = 'denied' | 'dismissed' | 'unsupported';
 
 const blockedContent: Record<
   BlockedReason,
   { title: string; description: string; steps?: string[] }
 > = {
   denied: {
-    title: "Notificaciones bloqueadas",
+    title: 'Notificaciones bloqueadas',
     description:
-      "Para usar TCS Reservas debes permitir las notificaciones del navegador, y ahora están bloqueadas para este sitio.",
+      'Para usar TCS Reservas debes permitir las notificaciones del navegador, y ahora están bloqueadas para este sitio.',
     steps: [
-      "Haz clic en el icono del candado (o de ajustes) junto a la dirección del sitio.",
-      "Busca «Notificaciones» y cámbialo a «Permitir».",
-      "Recarga la página e inicia sesión de nuevo.",
+      'Haz clic en el icono del candado (o de ajustes) junto a la dirección del sitio.',
+      'Busca «Notificaciones» y cámbialo a «Permitir».',
+      'Recarga la página e inicia sesión de nuevo.',
     ],
   },
   dismissed: {
-    title: "Falta tu permiso",
+    title: 'Falta tu permiso',
     description:
-      "Las notificaciones son obligatorias para ingresar. Vuelve a intentarlo y elige «Permitir» cuando el navegador te pregunte.",
+      'Las notificaciones son obligatorias para ingresar. Vuelve a intentarlo y elige «Permitir» cuando el navegador te pregunte.',
   },
   unsupported: {
-    title: "Tu navegador no admite notificaciones",
+    title: 'Tu navegador no admite notificaciones',
     description:
-      "Para ingresar necesitas un navegador compatible. En iPhone, abre el menú Compartir, elige «Agregar a pantalla de inicio» y abre la app desde ahí (iOS 16.4 o superior).",
+      'Para ingresar necesitas un navegador compatible. En iPhone, abre el menú Compartir, elige «Agregar a pantalla de inicio» y abre la app desde ahí (iOS 16.4 o superior).',
   },
 };
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [dialog, setDialog] = useState<{
     open: boolean;
     reason: BlockedReason;
-  }>({ open: false, reason: "dismissed" });
+  }>({ open: false, reason: 'dismissed' });
 
   const attemptLogin = async () => {
     const normalized = email.trim().toLowerCase();
@@ -68,21 +68,18 @@ export default function LoginPage() {
       const permission = await requestPermission();
       setIsLoading(false);
 
-      if (permission !== "granted") {
+      if (permission !== 'granted') {
         setDialog({
           open: true,
-          reason: permission === "default" ? "dismissed" : permission,
+          reason: permission === 'default' ? 'dismissed' : permission,
         });
         return;
       }
-      void showSystemNotification(
-        "Notificaciones activadas",
-        "Recibirás avisos de tus reservas.",
-      );
+      void showSystemNotification('Notificaciones activadas', 'Recibirás avisos de tus reservas.');
     }
 
     login(normalized); // TODO: replace with the real MSAL / Entra ID login
-    router.push("/");
+    router.push('/');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -119,15 +116,15 @@ export default function LoginPage() {
         </label>
         <button type="submit" className="btn btn-gold" disabled={isLoading}>
           {isLoading && <span className="spinner" aria-hidden />}
-          {isLoading ? "Solicitando permiso…" : "Continuar con SSO"}
+          {isLoading ? 'Solicitando permiso…' : 'Continuar con SSO'}
         </button>
         <div className="flex items-center gap-3">
           <Tag>@tcs.com</Tag>
           <Tag>@pichincha.com</Tag>
         </div>
         <small
-          role={hasError ? "alert" : undefined}
-          className={hasError ? "font-semibold text-red-700" : "text-ink-soft"}
+          role={hasError ? 'alert' : undefined}
+          className={hasError ? 'font-semibold text-red-700' : 'text-ink-soft'}
         >
           Otros dominios no están permitidos.
         </small>
@@ -146,7 +143,7 @@ export default function LoginPage() {
         description={content.description}
         footer={
           <>
-            {dialog.reason === "dismissed" && (
+            {dialog.reason === 'dismissed' && (
               <button
                 type="button"
                 className="btn btn-gold"
@@ -160,14 +157,10 @@ export default function LoginPage() {
             )}
             <button
               type="button"
-              className={
-                dialog.reason === "dismissed"
-                  ? "btn btn-outline"
-                  : "btn btn-gold"
-              }
+              className={dialog.reason === 'dismissed' ? 'btn btn-outline' : 'btn btn-gold'}
               onClick={() => setDialog((d) => ({ ...d, open: false }))}
             >
-              {dialog.reason === "dismissed" ? "Cancelar" : "Entendido"}
+              {dialog.reason === 'dismissed' ? 'Cancelar' : 'Entendido'}
             </button>
           </>
         }

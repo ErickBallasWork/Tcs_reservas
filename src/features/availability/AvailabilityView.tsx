@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import { format, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
-import { MonthCalendar, WeekStrip } from "@/components/shared/MonthCalendar";
-import { SlotCell } from "@/components/shared/SlotCell";
-import { Tag } from "@/components/shared/Tag";
-import { BookingForm } from "@/features/booking/BookingForm"; // <--- Tu formulario de reservas
+import { useMemo, useState } from 'react';
+import { format, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { MonthCalendar, WeekStrip } from '@/components/shared/MonthCalendar';
+import { SlotCell } from '@/components/shared/SlotCell';
+import { Tag } from '@/components/shared/Tag';
+import { BookingForm } from '@/features/booking/BookingForm'; // <--- Tu formulario de reservas
 import {
   DEFAULT_DATE,
   FIRST_SELECTABLE_DATE,
   getDaysWithReservations,
   getSlotStatus,
-} from "@/lib/availability";
-import { buildings, resources } from "@/lib/mock-data";
-import type { ResourceType, SlotStatus } from "@/types";
+} from '@/lib/availability';
+import { buildings, resources } from '@/lib/mock-data';
+import type { ResourceType, SlotStatus } from '@/types';
 
 const HOUR_RANGES = [
-  { value: "morning", label: "08:00–13:00", hours: [8, 9, 10, 11, 12] },
-  { value: "afternoon", label: "13:00–18:00", hours: [13, 14, 15, 16, 17] },
+  { value: 'morning', label: '08:00–13:00', hours: [8, 9, 10, 11, 12] },
+  { value: 'afternoon', label: '13:00–18:00', hours: [13, 14, 15, 16, 17] },
 ];
 
 const TYPE_ORDER: Record<ResourceType, number> = {
@@ -27,19 +27,19 @@ const TYPE_ORDER: Record<ResourceType, number> = {
   laptop: 2,
 };
 
-const hourLabel = (h: number) => `${String(h).padStart(2, "0")}:00`;
+const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`;
 
-const mobileTagVariant: Record<SlotStatus, "default" | "dark" | "gold"> = {
-  free: "default",
-  occupied: "dark",
-  blocked: "gold",
+const mobileTagVariant: Record<SlotStatus, 'default' | 'dark' | 'gold'> = {
+  free: 'default',
+  occupied: 'dark',
+  blocked: 'gold',
 };
 
 export function AvailabilityView() {
   const [date, setDate] = useState(DEFAULT_DATE);
-  const [buildingId, setBuildingId] = useState("b-a");
-  const [rangeValue, setRangeValue] = useState("morning");
-  const [minCapacity, setMinCapacity] = useState("");
+  const [buildingId, setBuildingId] = useState('b-a');
+  const [rangeValue, setRangeValue] = useState('morning');
+  const [minCapacity, setMinCapacity] = useState('');
 
   // Estado para controlar el Modal de Reserva
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -56,7 +56,7 @@ export function AvailabilityView() {
         (r) =>
           r.active &&
           r.buildingId === buildingId &&
-          (r.type === "laptop" || (r.capacity ?? 0) >= min),
+          (r.type === 'laptop' || (r.capacity ?? 0) >= min),
       )
       .sort((a, b) => TYPE_ORDER[a.type] - TYPE_ORDER[b.type]);
   }, [buildingId, minCapacity]);
@@ -72,11 +72,7 @@ export function AvailabilityView() {
   };
 
   const buildingSelect = (
-    <select
-      className="field"
-      value={buildingId}
-      onChange={(e) => setBuildingId(e.target.value)}
-    >
+    <select className="field" value={buildingId} onChange={(e) => setBuildingId(e.target.value)}>
       {activeBuildings.map((b) => (
         <option key={b.id} value={b.id}>
           {b.name}
@@ -100,9 +96,7 @@ export function AvailabilityView() {
             <Tag variant="gold">Con reservas</Tag>
           </div>
           <MonthCalendar year={2026} month={10} {...calendarProps} />
-          <small className="text-ink-soft">
-            Elige el día; solo desde mañana en adelante.
-          </small>
+          <small className="text-ink-soft">Elige el día; solo desde mañana en adelante.</small>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -144,13 +138,13 @@ export function AvailabilityView() {
               <table className="w-full border-collapse">
                 <thead>
                   <tr>
-                    <th className="border-b-2 border-line p-2 text-left text-xs uppercase text-ink-soft">
+                    <th className="border-b-2 border-line p-2 text-left text-xs text-ink-soft uppercase">
                       Recurso
                     </th>
                     {hours.map((h) => (
                       <th
                         key={h}
-                        className="border-b-2 border-line p-2 text-left text-xs uppercase text-ink-soft"
+                        className="border-b-2 border-line p-2 text-left text-xs text-ink-soft uppercase"
                       >
                         {hourLabel(h)}
                       </th>
@@ -160,8 +154,8 @@ export function AvailabilityView() {
                 <tbody>
                   {rows.map((r) => (
                     <tr key={r.id}>
-                      <td className="whitespace-nowrap border-b border-soft px-2 py-1.5">
-                        {r.type === "ai_lab" ? `${r.name} (completo)` : r.name}
+                      <td className="border-b border-soft px-2 py-1.5 whitespace-nowrap">
+                        {r.type === 'ai_lab' ? `${r.name} (completo)` : r.name}
                       </td>
                       {hours.map((h) => (
                         <td key={h} className="border-b border-soft px-2 py-1.5">
@@ -179,11 +173,7 @@ export function AvailabilityView() {
               <Tag variant="gold">Bloqueado por laboratorio</Tag>
               <span className="flex-1" />
               {/* Botón que abre el modal en lugar de usar Link */}
-              <button
-                type="button"
-                onClick={() => openModal()}
-                className="btn btn-gold"
-              >
+              <button type="button" onClick={() => openModal()} className="btn btn-gold">
                 Reservar
               </button>
             </div>
@@ -212,46 +202,38 @@ export function AvailabilityView() {
                 </Tag>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={() => openModal(r.id)}
-              className="btn btn-gold"
-            >
+            <button type="button" onClick={() => openModal(r.id)} className="btn btn-gold">
               Reservar
             </button>
-            {r.type === "laptop" && (
-              <small className="text-ink-soft">
-                Amarillo: bloqueada por laboratorio completo.
-              </small>
+            {r.type === 'laptop' && (
+              <small className="text-ink-soft">Amarillo: bloqueada por laboratorio completo.</small>
             )}
           </div>
         ))}
         {rows.length === 0 && (
-          <small className="text-ink-soft">
-            No hay recursos con esos filtros.
-          </small>
+          <small className="text-ink-soft">No hay recursos con esos filtros.</small>
         )}
       </div>
 
       {/* --- MODAL FLOTANTE DE RESERVA --- */}
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4 backdrop-blur-sm">
-            {/* CAMBIA ESTA LÍNEA EXACTAMENTE ASÍ */}
-            <div className="panel relative max-h-[95vh] w-full max-w-[95vw] sm:max-w-7xl overflow-y-auto bg-white p-6 shadow-xl">
-              <div className="mb-4 flex items-center justify-between border-b border-line pb-3">
-                <h3 className="text-lg font-bold text-brand">Nueva reserva</h3>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="text-sm font-bold text-ink-soft hover:text-brand"
-                >
-                  ✕ Cerrar
-                </button>
-              </div>
-              <BookingForm />
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 backdrop-blur-sm sm:p-4">
+          {/* CAMBIA ESTA LÍNEA EXACTAMENTE ASÍ */}
+          <div className="panel relative max-h-[95vh] w-full max-w-[95vw] overflow-y-auto bg-white p-6 shadow-xl sm:max-w-7xl">
+            <div className="mb-4 flex items-center justify-between border-b border-line pb-3">
+              <h3 className="text-lg font-bold text-brand">Nueva reserva</h3>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="text-sm font-bold text-ink-soft hover:text-brand"
+              >
+                ✕ Cerrar
+              </button>
             </div>
+            <BookingForm />
           </div>
-        )}
+        </div>
+      )}
     </>
   );
 }

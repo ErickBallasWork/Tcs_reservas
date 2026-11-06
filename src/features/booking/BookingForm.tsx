@@ -1,38 +1,34 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { FIRST_SELECTABLE_DATE } from "@/lib/availability";
-import { checkBooking } from "@/lib/booking-rules";
-import { reasonLabels, resourceTypeLabels } from "@/lib/labels";
-import { resources } from "@/lib/mock-data";
-import type { ReservationReason, ResourceType } from "@/types";
-import Link from "next/link";
-import { format, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
-import { FeedbackDialog } from "@/components/shared/FeedbackDialog";
+import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { FIRST_SELECTABLE_DATE } from '@/lib/availability';
+import { checkBooking } from '@/lib/booking-rules';
+import { reasonLabels, resourceTypeLabels } from '@/lib/labels';
+import { resources } from '@/lib/mock-data';
+import type { ReservationReason, ResourceType } from '@/types';
+import Link from 'next/link';
+import { format, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { FeedbackDialog } from '@/components/shared/FeedbackDialog';
 
-const TYPES: ResourceType[] = ["room", "ai_lab", "laptop"];
-const SELECTABLE_REASONS: ReservationReason[] = [
-  "training",
-  "internal_meeting",
-  "client_meeting",
-];
+const TYPES: ResourceType[] = ['room', 'ai_lab', 'laptop'];
+const SELECTABLE_REASONS: ReservationReason[] = ['training', 'internal_meeting', 'client_meeting'];
 const activeResources = resources.filter((r) => r.active);
 
 const RULE_TEXT = {
-  overlap: "La franja se cruza con otra reserva.",
-  anticipation: "Se requiere al menos 1 día de anticipación.",
-  duration: "La duración máxima continua es de 2 días.",
-  range: "La fecha de fin debe ser posterior al inicio.",
-  required: "Motivo y detalle son obligatorios.",
+  overlap: 'La franja se cruza con otra reserva.',
+  anticipation: 'Se requiere al menos 1 día de anticipación.',
+  duration: 'La duración máxima continua es de 2 días.',
+  range: 'La fecha de fin debe ser posterior al inicio.',
+  required: 'Motivo y detalle son obligatorios.',
 };
 
 type Feedback =
-  | { kind: "error"; messages: string[] }
+  | { kind: 'error'; messages: string[] }
   | {
-      kind: "success";
+      kind: 'success';
       training: boolean;
       resourceName: string;
       start: string;
@@ -48,26 +44,23 @@ export function BookingForm() {
 
   // En BookingForm.tsx, dentro de la inicialización del estado:
   const [initial] = useState(() => {
-    const preset = activeResources.find((r) => r.id === params.get("resource"));
-    const dateParam = params.get("date");
-    const hourParam = params.get("hour"); // <--- Captura la hora seleccionada
-    
+    const preset = activeResources.find((r) => r.id === params.get('resource'));
+    const dateParam = params.get('date');
+    const hourParam = params.get('hour'); // <--- Captura la hora seleccionada
+
     const date =
-      dateParam && dateParam >= FIRST_SELECTABLE_DATE
-        ? dateParam
-        : FIRST_SELECTABLE_DATE;
-        
-    const type: ResourceType = preset?.type ?? "room";
-    
+      dateParam && dateParam >= FIRST_SELECTABLE_DATE ? dateParam : FIRST_SELECTABLE_DATE;
+
+    const type: ResourceType = preset?.type ?? 'room';
+
     // Si viene una hora específica, la usamos como inicio y sumamos 1 hora para el fin por defecto
     const startHour = hourParam ? Number(hourParam) : 10;
     const endHour = startHour + 1;
-    const pad = (n: number) => String(n).padStart(2, "0");
+    const pad = (n: number) => String(n).padStart(2, '0');
 
     return {
       type,
-      resourceId:
-        preset?.id ?? activeResources.find((r) => r.type === type)!.id,
+      resourceId: preset?.id ?? activeResources.find((r) => r.type === type)!.id,
       start: `${date}T${pad(startHour)}:00`,
       end: `${date}T${pad(endHour)}:00`,
     };
@@ -77,8 +70,8 @@ export function BookingForm() {
   const [resourceId, setResourceId] = useState(initial.resourceId);
   const [start, setStart] = useState(initial.start);
   const [end, setEnd] = useState(initial.end);
-  const [reason, setReason] = useState<ReservationReason | "">("");
-  const [detail, setDetail] = useState("");
+  const [reason, setReason] = useState<ReservationReason | ''>('');
+  const [detail, setDetail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -91,9 +84,9 @@ export function BookingForm() {
   );
 
   const rules = [
-    { key: "overlap", text: RULE_TEXT.overlap, violated: check.overlap },
-    { key: "anticipation", text: RULE_TEXT.anticipation, violated: check.anticipation },
-    { key: "duration", text: RULE_TEXT.duration, violated: check.duration },
+    { key: 'overlap', text: RULE_TEXT.overlap, violated: check.overlap },
+    { key: 'anticipation', text: RULE_TEXT.anticipation, violated: check.anticipation },
+    { key: 'duration', text: RULE_TEXT.duration, violated: check.duration },
   ];
 
   const extraErrors: string[] = [];
@@ -117,7 +110,7 @@ export function BookingForm() {
     if (check.missingFields) messages.push(RULE_TEXT.required);
 
     if (messages.length > 0) {
-      setFeedback({ kind: "error", messages });
+      setFeedback({ kind: 'error', messages });
       setDialogOpen(true);
       return;
     }
@@ -127,28 +120,24 @@ export function BookingForm() {
     setTimeout(() => {
       const resource = activeResources.find((r) => r.id === resourceId);
       setFeedback({
-        kind: "success",
-        training: reason === "training",
-        resourceName: resource?.name ?? "",
+        kind: 'success',
+        training: reason === 'training',
+        resourceName: resource?.name ?? '',
         start,
         end,
-        reasonLabel: reason ? reasonLabels[reason] : "",
+        reasonLabel: reason ? reasonLabels[reason] : '',
       });
       setDialogOpen(true);
       setIsSubmitting(false);
-      setReason("");
-      setDetail("");
+      setReason('');
+      setDetail('');
       setSubmitted(false);
     }, 700);
   };
 
   return (
     <div className="grid gap-4 md:grid-cols-[3fr_2fr]">
-      <form
-        onSubmit={handleSubmit}
-        noValidate
-        className="panel flex flex-col gap-3"
-      >
+      <form onSubmit={handleSubmit} noValidate className="panel flex flex-col gap-3">
         <div className="flex flex-col gap-3 md:flex-row">
           <label className="field-label md:flex-1">
             Tipo
@@ -206,7 +195,7 @@ export function BookingForm() {
           <select
             className="field"
             value={reason}
-            onChange={(e) => setReason(e.target.value as ReservationReason | "")}
+            onChange={(e) => setReason(e.target.value as ReservationReason | '')}
           >
             <option value="">Selecciona un motivo</option>
             {SELECTABLE_REASONS.map((r) => (
@@ -245,7 +234,7 @@ export function BookingForm() {
 
         <button type="submit" className="btn btn-gold" disabled={isSubmitting}>
           {isSubmitting && <span className="spinner" aria-hidden />}
-          {isSubmitting ? "Enviando…" : "Solicitar reserva"}
+          {isSubmitting ? 'Enviando…' : 'Solicitar reserva'}
         </button>
       </form>
 
@@ -256,9 +245,7 @@ export function BookingForm() {
           <div
             key={r.key}
             className={cn(
-              r.violated
-                ? "alert"
-                : "rounded-[10px] border border-line bg-soft p-3 text-brand",
+              r.violated ? 'alert' : 'rounded-[10px] border border-line bg-soft p-3 text-brand',
             )}
           >
             {r.text}
@@ -270,12 +257,11 @@ export function BookingForm() {
           </div>
         ))}
         <small className="text-ink-soft">
-          Motivo y detalle son obligatorios. Entrenamiento requiere aprobación
-          del Líder.
+          Motivo y detalle son obligatorios. Entrenamiento requiere aprobación del Líder.
         </small>
       </div>
 
-      {feedback?.kind === "error" && (
+      {feedback?.kind === 'error' && (
         <FeedbackDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
@@ -283,11 +269,7 @@ export function BookingForm() {
           title="No se pudo solicitar la reserva"
           description="Corrige lo siguiente e inténtalo de nuevo."
           footer={
-            <button
-              type="button"
-              className="btn btn-gold"
-              onClick={() => setDialogOpen(false)}
-            >
+            <button type="button" className="btn btn-gold" onClick={() => setDialogOpen(false)}>
               Entendido
             </button>
           }
@@ -302,16 +284,16 @@ export function BookingForm() {
         </FeedbackDialog>
       )}
 
-      {feedback?.kind === "success" && (
+      {feedback?.kind === 'success' && (
         <FeedbackDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           variant="success"
-          title={feedback.training ? "Solicitud enviada" : "Reserva confirmada"}
+          title={feedback.training ? 'Solicitud enviada' : 'Reserva confirmada'}
           description={
             feedback.training
-              ? "Tu entrenamiento quedó pendiente de aprobación del Líder de Conocimiento. El espacio queda bloqueado mientras se decide."
-              : "Tu reserva quedó registrada. Puedes verla en Mis reservas."
+              ? 'Tu entrenamiento quedó pendiente de aprobación del Líder de Conocimiento. El espacio queda bloqueado mientras se decide.'
+              : 'Tu reserva quedó registrada. Puedes verla en Mis reservas.'
           }
           footer={
             <>

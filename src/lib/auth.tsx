@@ -1,13 +1,7 @@
-"use client";
+'use client';
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import type { Role } from "@/types";
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import type { Role } from '@/types';
 
 interface Session {
   email: string;
@@ -24,11 +18,11 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-const ROLE_KEY = "mock-role";
-const SESSION_KEY = "mock-session";
+const ROLE_KEY = 'mock-role';
+const SESSION_KEY = 'mock-session';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRoleState] = useState<Role>("associate");
+  const [role, setRoleState] = useState<Role>('associate');
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -66,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ role, setRole, userName: "Ana Pérez", session, ready, login, logout }}
+      value={{ role, setRole, userName: 'Ana Pérez', session, ready, login, logout }}
     >
       {children}
     </AuthContext.Provider>
@@ -75,6 +69,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
   return ctx;
 }

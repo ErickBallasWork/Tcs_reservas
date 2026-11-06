@@ -1,17 +1,14 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/auth";
-import { roleLabels } from "@/lib/labels";
-import { homeByRole, navByRole } from "@/lib/nav";
-import {
-  REQUIRE_NOTIFICATIONS,
-  useNotificationPermission,
-} from "@/lib/notifications";
-import { cn } from "@/lib/utils";
-import type { Role } from "@/types";
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/lib/auth';
+import { roleLabels } from '@/lib/labels';
+import { homeByRole, navByRole } from '@/lib/nav';
+import { REQUIRE_NOTIFICATIONS, useNotificationPermission } from '@/lib/notifications';
+import { cn } from '@/lib/utils';
+import type { Role } from '@/types';
 
 const MOBILE_SLOTS = 4;
 
@@ -32,10 +29,10 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
   useEffect(() => {
     if (!ready || permission === null) return;
     if (!session) {
-      router.replace("/login");
-    } else if (REQUIRE_NOTIFICATIONS && permission !== "granted") {
+      router.replace('/login');
+    } else if (REQUIRE_NOTIFICATIONS && permission !== 'granted') {
       logout();
-      router.replace("/login");
+      router.replace('/login');
     }
   }, [ready, permission, session, router, logout]);
 
@@ -43,13 +40,12 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
     ready &&
     permission !== null &&
     !!session &&
-    (!REQUIRE_NOTIFICATIONS || permission === "granted");
+    (!REQUIRE_NOTIFICATIONS || permission === 'granted');
 
   if (!hasAccess) return null;
 
   const items = navByRole[role];
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(href + "/");
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
   // Mobile: with more than 4 items, show 3 + a "Más" button
   const overflow = items.length > MOBILE_SLOTS;
@@ -64,7 +60,7 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
 
   const handleLogout = () => {
     logout();
-    router.replace("/login");
+    router.replace('/login');
   };
 
   // Temporary selector to test every role without a real login
@@ -87,29 +83,24 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
     <div className="flex min-h-screen bg-surface text-ink">
       {/* Desktop sidebar */}
       <aside className="hidden w-[236px] shrink-0 flex-col gap-1.5 bg-brand px-3.5 py-5 text-white md:flex">
-        <div className="px-3 pb-3.5 pt-1 text-xl font-extrabold">
+        <div className="px-3 pt-1 pb-3.5 text-xl font-extrabold">
           TCS <b className="text-gold">Reservas</b>
         </div>
-        <small className="px-3 pb-2 text-[11px] uppercase opacity-80">
-          {roleLabels[role]}
-        </small>
+        <small className="px-3 pb-2 text-[11px] uppercase opacity-80">{roleLabels[role]}</small>
         {items.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              "flex min-h-11 items-center rounded-lg px-3 transition-colors hover:bg-white/10",
-              isActive(item.href) &&
-                "bg-gold font-bold text-brand-dark hover:bg-gold",
+              'flex min-h-11 items-center rounded-lg px-3 transition-colors hover:bg-white/10',
+              isActive(item.href) && 'bg-gold font-bold text-brand-dark hover:bg-gold',
             )}
           >
             {item.label}
           </Link>
         ))}
         <div className="mt-auto flex flex-col gap-1.5 pt-4">
-          <small className="block px-1 text-[11px] uppercase opacity-60">
-            Rol (demo)
-          </small>
+          <small className="block px-1 text-[11px] uppercase opacity-60">Rol (demo)</small>
           {roleSelect}
           <button
             type="button"
@@ -148,8 +139,8 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
             href={item.href}
             onClick={() => setMoreOpen(false)}
             className={cn(
-              "flex min-h-14 flex-1 items-center justify-center text-xs font-semibold text-brand transition-colors active:bg-soft",
-              isActive(item.href) && "bg-gold text-brand-dark active:bg-gold",
+              'flex min-h-14 flex-1 items-center justify-center text-xs font-semibold text-brand transition-colors active:bg-soft',
+              isActive(item.href) && 'bg-gold text-brand-dark active:bg-gold',
             )}
           >
             {item.shortLabel}
@@ -161,24 +152,23 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
               type="button"
               onClick={() => setMoreOpen((o) => !o)}
               className={cn(
-                "flex min-h-14 flex-1 cursor-pointer items-center justify-center text-xs font-semibold text-brand transition-colors active:bg-soft",
+                'flex min-h-14 flex-1 cursor-pointer items-center justify-center text-xs font-semibold text-brand transition-colors active:bg-soft',
                 (moreOpen || mobileMore.some((i) => isActive(i.href))) &&
-                  "bg-gold text-brand-dark active:bg-gold",
+                  'bg-gold text-brand-dark active:bg-gold',
               )}
             >
               Más
             </button>
             {moreOpen && (
-              <div className="absolute bottom-full right-2 mb-2 w-56 overflow-hidden rounded-lg border border-line bg-white shadow-lg">
+              <div className="absolute right-2 bottom-full mb-2 w-56 overflow-hidden rounded-lg border border-line bg-white shadow-lg">
                 {mobileMore.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setMoreOpen(false)}
                     className={cn(
-                      "flex min-h-11 items-center px-4 text-sm font-semibold text-brand transition-colors hover:bg-soft",
-                      isActive(item.href) &&
-                        "bg-gold text-brand-dark hover:bg-gold",
+                      'flex min-h-11 items-center px-4 text-sm font-semibold text-brand transition-colors hover:bg-soft',
+                      isActive(item.href) && 'bg-gold text-brand-dark hover:bg-gold',
                     )}
                   >
                     {item.label}

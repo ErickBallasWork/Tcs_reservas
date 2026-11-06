@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { FeedbackDialog } from "@/components/shared/FeedbackDialog";
-import { Tag } from "@/components/shared/Tag";
+import { useState } from 'react';
+import { FeedbackDialog } from '@/components/shared/FeedbackDialog';
+import { Tag } from '@/components/shared/Tag';
 import {
   isUserBlocked,
   notifications as initialNotifications,
   pendingUsage,
-} from "@/lib/mock-data";
-import { showSystemNotification } from "@/lib/notifications";
-import type { AppNotification } from "@/types";
+} from '@/lib/mock-data';
+import { showSystemNotification } from '@/lib/notifications';
+import type { AppNotification } from '@/types';
 
 function NewTagButton({ onClick }: { onClick: () => void }) {
   return (
@@ -34,16 +34,15 @@ export function NotificationsView() {
 
   const markRead = (id: string) =>
     setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-  const markAllRead = () =>
-    setItems((prev) => prev.map((n) => ({ ...n, read: true })));
+  const markAllRead = () => setItems((prev) => prev.map((n) => ({ ...n, read: true })));
 
   // Demo: adds an in-app notice and shows it as a browser notification
   const sendTest = () => {
     const note: AppNotification = {
       id: `n-${Date.now()}`,
-      title: "Aviso de prueba",
-      detail: "Las notificaciones del navegador funcionan.",
-      message: "Aviso de prueba: las notificaciones del navegador funcionan.",
+      title: 'Aviso de prueba',
+      detail: 'Las notificaciones del navegador funcionan.',
+      message: 'Aviso de prueba: las notificaciones del navegador funcionan.',
       read: false,
     };
     setItems((prev) => [note, ...prev]);
@@ -61,10 +60,10 @@ export function NotificationsView() {
   };
 
   const usageButtonLabel = isRegistering
-    ? "Registrando…"
+    ? 'Registrando…'
     : usageRegistered
-      ? "Uso registrado"
-      : "Registrar uso";
+      ? 'Uso registrado'
+      : 'Registrar uso';
 
   return (
     <>
@@ -72,9 +71,7 @@ export function NotificationsView() {
         {/* Desktop: notification center */}
         <div className="panel hidden flex-col gap-3 md:flex">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-base font-bold text-brand">
-              Centro de notificaciones
-            </h2>
+            <h2 className="text-base font-bold text-brand">Centro de notificaciones</h2>
             <button
               type="button"
               className="btn btn-outline min-h-9 px-3 text-sm"
@@ -90,10 +87,10 @@ export function NotificationsView() {
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  <th className="border-b-2 border-line p-2 text-left text-xs uppercase text-ink-soft">
+                  <th className="border-b-2 border-line p-2 text-left text-xs text-ink-soft uppercase">
                     Aviso
                   </th>
-                  <th className="border-b-2 border-line p-2 text-left text-xs uppercase text-ink-soft">
+                  <th className="border-b-2 border-line p-2 text-left text-xs text-ink-soft uppercase">
                     Estado
                   </th>
                 </tr>
@@ -101,15 +98,9 @@ export function NotificationsView() {
               <tbody>
                 {items.map((n) => (
                   <tr key={n.id}>
+                    <td className="border-b border-soft px-2 py-1.5">{n.message}</td>
                     <td className="border-b border-soft px-2 py-1.5">
-                      {n.message}
-                    </td>
-                    <td className="border-b border-soft px-2 py-1.5">
-                      {n.read ? (
-                        <Tag>Leída</Tag>
-                      ) : (
-                        <NewTagButton onClick={() => markRead(n.id)} />
-                      )}
+                      {n.read ? <Tag>Leída</Tag> : <NewTagButton onClick={() => markRead(n.id)} />}
                     </td>
                   </tr>
                 ))}
@@ -124,18 +115,12 @@ export function NotificationsView() {
             <div key={n.id} className="panel flex flex-col gap-3">
               <div className="flex items-start justify-between gap-3">
                 <b>{n.title}</b>
-                {n.read ? (
-                  <Tag>Leída</Tag>
-                ) : (
-                  <NewTagButton onClick={() => markRead(n.id)} />
-                )}
+                {n.read ? <Tag>Leída</Tag> : <NewTagButton onClick={() => markRead(n.id)} />}
               </div>
               <small className="text-ink-soft">{n.detail}</small>
             </div>
           ))}
-          {items.length === 0 && (
-            <small className="text-ink-soft">No tienes notificaciones.</small>
-          )}
+          {items.length === 0 && <small className="text-ink-soft">No tienes notificaciones.</small>}
           {unreadCount > 0 && (
             <button type="button" className="btn btn-outline" onClick={markAllRead}>
               Marcar todas como leídas
@@ -146,9 +131,7 @@ export function NotificationsView() {
         {/* Usage + block */}
         <div className="flex flex-col gap-3">
           <div className="panel flex flex-col gap-3">
-            <h2 className="text-base font-bold text-brand max-md:text-[15px]">
-              Registrar uso
-            </h2>
+            <h2 className="text-base font-bold text-brand max-md:text-[15px]">Registrar uso</h2>
             <p className="max-md:text-sm max-md:text-ink-soft">
               {pendingUsage.resourceName} · {pendingUsage.slotLabel}
             </p>
@@ -164,8 +147,7 @@ export function NotificationsView() {
           </div>
           {isUserBlocked && (
             <div className="alert">
-              Bloqueo por inasistencia: no puedes reservar hasta que un
-              Administrador lo regularice.
+              Bloqueo por inasistencia: no puedes reservar hasta que un Administrador lo regularice.
             </div>
           )}
         </div>
@@ -188,11 +170,7 @@ export function NotificationsView() {
         title="Uso registrado"
         description={`Registraste el uso de ${pendingUsage.resourceName} (${pendingUsage.slotLabel}). Así evitas el bloqueo por inasistencia.`}
         footer={
-          <button
-            type="button"
-            className="btn btn-gold"
-            onClick={() => setUsageDialogOpen(false)}
-          >
+          <button type="button" className="btn btn-gold" onClick={() => setUsageDialogOpen(false)}>
             Entendido
           </button>
         }

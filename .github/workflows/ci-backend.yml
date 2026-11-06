@@ -75,4 +75,3 @@ jobs:
 
       - name: Apply Prisma migrations (DO-13)
         run: npx prisma migrate deploy
-

@@ -1,6 +1,6 @@
-import { ACTIVE_STATUSES, FIRST_SELECTABLE_DATE } from "@/lib/availability";
-import { reservations, resources } from "@/lib/mock-data";
-import type { ReservationReason } from "@/types";
+import { ACTIVE_STATUSES, FIRST_SELECTABLE_DATE } from '@/lib/availability';
+import { reservations, resources } from '@/lib/mock-data';
+import type { ReservationReason } from '@/types';
 
 const HOUR_MS = 3_600_000;
 const MAX_DURATION_HOURS = 48;
@@ -9,7 +9,7 @@ export interface BookingInput {
   resourceId: string;
   start: string;
   end: string;
-  reason: ReservationReason | "";
+  reason: ReservationReason | '';
   detail: string;
 }
 
@@ -26,13 +26,11 @@ export interface BookingCheck {
 function getConflictingResourceIds(resourceId: string): string[] {
   const resource = resources.find((r) => r.id === resourceId);
   if (!resource) return [resourceId];
-  if (resource.type === "laptop" && resource.parentLabId) {
+  if (resource.type === 'laptop' && resource.parentLabId) {
     return [resource.id, resource.parentLabId];
   }
-  if (resource.type === "ai_lab") {
-    const laptopIds = resources
-      .filter((r) => r.parentLabId === resource.id)
-      .map((r) => r.id);
+  if (resource.type === 'ai_lab') {
+    const laptopIds = resources.filter((r) => r.parentLabId === resource.id).map((r) => r.id);
     return [resource.id, ...laptopIds];
   }
   return [resource.id];

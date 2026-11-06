@@ -1,25 +1,12 @@
-export type Role =
-  | "associate"
-  | "admin"
-  | "admin_spoc"
-  | "knowledge_leader"
-  | "building_spoc";
+export type Role = 'associate' | 'admin' | 'admin_spoc' | 'knowledge_leader' | 'building_spoc';
 
-export type ResourceType = "room" | "ai_lab" | "laptop";
+export type ResourceType = 'room' | 'ai_lab' | 'laptop';
 
-export type ReservationStatus =
-  | "confirmed"
-  | "pending"
-  | "rejected"
-  | "cancelled";
+export type ReservationStatus = 'confirmed' | 'pending' | 'rejected' | 'cancelled';
 
-export type ReservationReason =
-  | "internal_meeting"
-  | "client_meeting"
-  | "training"
-  | "client_event";
+export type ReservationReason = 'internal_meeting' | 'client_meeting' | 'training' | 'client_event';
 
-export type SlotStatus = "free" | "occupied" | "blocked";
+export type SlotStatus = 'free' | 'occupied' | 'blocked';
 
 export interface Building {
   id: string;

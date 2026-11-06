@@ -27,6 +27,18 @@ describe('navForRoles', () => {
     expect(items.filter((href) => href === '/catalog')).toHaveLength(1);
   });
 
+  it.each([
+    ['ASOCIADO'],
+    ['ADMIN'],
+    ['SUPERADMIN'],
+    ['LIDER'],
+    ['SPOC_ADMIN'],
+    ['SPOC_EDIFICIO'],
+  ] as const)('lets %s open the notifications they receive', (role) => {
+    expect(hrefs([role])).toContain('/notifications');
+    expect(canOpen([role], '/notifications')).toBe(true);
+  });
+
   it('gives the access requests only to the SUPERADMIN', () => {
     expect(hrefs(['ADMIN'])).not.toContain('/admin/access-requests');
     expect(hrefs(['SUPERADMIN'])).toContain('/admin/access-requests');

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { PermissionPrompt } from '@/features/notifications/PermissionPrompt';
+import { UnreadBadge } from '@/features/notifications/UnreadBadge';
+import { useUnreadCount } from '@/features/notifications/useNotifications';
 import { SanctionBanner } from '@/features/sanctions/SanctionBanner';
 import { useAuth } from '@/lib/auth';
 import { authLabels, roleLabels } from '@/lib/labels';
@@ -12,6 +14,7 @@ import { canOpen, homeForRoles, navForRoles } from '@/lib/nav';
 import { cn } from '@/lib/utils';
 
 const MOBILE_SLOTS = 4;
+const NOTIFICATIONS_HREF = '/notifications';
 
 interface AppShellProps {
   title: string;
@@ -24,6 +27,7 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [moreOpen, setMoreOpen] = useState(false);
+  const unread = useUnreadCount();
 
   const allowed = status === 'authenticated' && canOpen(roles, pathname);
 
@@ -52,6 +56,7 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
   const overflow = items.length > MOBILE_SLOTS;
   const mobilePrimary = overflow ? items.slice(0, MOBILE_SLOTS - 1) : items;
   const mobileMore = overflow ? items.slice(MOBILE_SLOTS - 1) : [];
+  const notificationsInOverflow = mobileMore.some((item) => item.href === NOTIFICATIONS_HREF);
   const roleSummary = roles.map((role) => roleLabels[role]).join(' · ');
 
   const handleLogout = () => {
@@ -78,7 +83,8 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
               isActive(item.href) && 'bg-gold font-bold text-brand-dark hover:bg-gold',
             )}
           >
-            {item.label}
+            <span className="flex-1">{item.label}</span>
+            {item.href === NOTIFICATIONS_HREF && <UnreadBadge count={unread} />}
           </Link>
         ))}
         <div className="mt-auto flex flex-col gap-1.5 pt-4">
@@ -128,11 +134,17 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
             href={item.href}
             onClick={() => setMoreOpen(false)}
             className={cn(
-              'flex min-h-14 flex-1 items-center justify-center text-xs font-semibold text-brand transition-colors active:bg-soft',
+              'relative flex min-h-14 flex-1 items-center justify-center text-xs font-semibold text-brand transition-colors active:bg-soft',
               isActive(item.href) && 'bg-gold text-brand-dark active:bg-gold',
             )}
           >
             {item.shortLabel}
+            {item.href === NOTIFICATIONS_HREF && (
+              <UnreadBadge
+                count={unread}
+                className="absolute top-1.5 right-[calc(50%-28px)] bg-brand text-white"
+              />
+            )}
           </Link>
         ))}
         {overflow && (
@@ -141,12 +153,18 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
               type="button"
               onClick={() => setMoreOpen((open) => !open)}
               className={cn(
-                'flex min-h-14 flex-1 cursor-pointer items-center justify-center text-xs font-semibold text-brand transition-colors active:bg-soft',
+                'relative flex min-h-14 flex-1 cursor-pointer items-center justify-center text-xs font-semibold text-brand transition-colors active:bg-soft',
                 (moreOpen || mobileMore.some((item) => isActive(item.href))) &&
                   'bg-gold text-brand-dark active:bg-gold',
               )}
             >
               Más
+              {notificationsInOverflow && (
+                <UnreadBadge
+                  count={unread}
+                  className="absolute top-1.5 right-[calc(50%-28px)] bg-brand text-white"
+                />
+              )}
             </button>
             {moreOpen && (
               <div className="absolute right-2 bottom-full mb-2 w-56 overflow-hidden rounded-lg border border-line bg-white shadow-lg">
@@ -160,7 +178,8 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
                       isActive(item.href) && 'bg-gold text-brand-dark hover:bg-gold',
                     )}
                   >
-                    {item.label}
+                    <span className="flex-1">{item.label}</span>
+                    {item.href === NOTIFICATIONS_HREF && <UnreadBadge count={unread} />}
                   </Link>
                 ))}
               </div>

@@ -416,6 +416,23 @@ export interface paths {
         patch: operations["BuildingsController_update"];
         trace?: never;
     };
+    "/api/v1/buildings/{id}/future-reservations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reservas futuras afectadas si se inactiva el edificio */
+        get: operations["BuildingsController_futureReservations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/resources": {
         parameters: {
             query?: never;
@@ -476,7 +493,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Catálogo completo: edificio > sala o laboratorio > laptop (HU-04) */
+        /** Catálogo completo: edificio > sala o laboratorio > laptop (HU-04). includeInactive solo para administradores */
         get: operations["CatalogController_tree"];
         put?: never;
         post?: never;
@@ -817,7 +834,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {string} */
-        ErrorCode: "ACCESS_REQUEST_COOLDOWN" | "ACCESS_REQUEST_NOT_APPROVED" | "ACCESS_REQUEST_NOT_FOUND" | "ACCESS_REQUEST_PENDING" | "ACCESS_REQUEST_REDEEMED" | "ALREADY_RESOLVED" | "ALREADY_STARTED" | "BAD_REQUEST" | "BUILDING_NOT_FOUND" | "BUILDING_REQUIRED" | "CANCEL_TOO_LATE" | "CANNOT_MANAGE_SELF" | "CAPACITY_REQUIRED" | "COMMENTS_REQUIRED" | "CONCURRENT_CONFLICT" | "CONFLICT" | "DATABASE_UNAVAILABLE" | "DEVICE_NOT_AUTHORIZED" | "DEVICE_NOT_FOUND" | "DOMAIN_NOT_ALLOWED" | "DUPLICATE" | "END_BEFORE_START" | "ERROR" | "FORBIDDEN" | "FORBIDDEN_ROLE" | "FORBIDDEN_ROLE_ASSIGNMENT" | "FOREIGN_KEY" | "HAS_FUTURE_RESERVATIONS" | "INVALID_DATE" | "INVALID_JOB_KEY" | "INVALID_RANGE" | "INVALID_TOKEN" | "LAB_REQUIRED" | "LAST_SUPERADMIN" | "MAX_DURATION" | "MIN_ADVANCE" | "NO_TOKEN" | "NOT_A_MANAGER" | "NOT_ALIGNED" | "NOT_CANCELLABLE" | "NOT_CHECKABLE" | "NOT_FOUND" | "NOT_OWNER" | "NOT_PENDING" | "NOT_REALLOCATABLE" | "NOT_YOUR_BUILDING" | "NOTHING_TO_CHANGE" | "NOTIFICATION_NOT_FOUND" | "ONLY_ROOMS" | "OUTSIDE_CHECKIN_WINDOW" | "PARENT_NOT_ALLOWED" | "RANGE_TOO_LONG" | "RESERVATION_NOT_FOUND" | "RESOURCE_INACTIVE" | "RESOURCE_NOT_FOUND" | "ROLE_NOT_FOUND" | "SANCTION_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "SLOT_TAKEN" | "START_IN_PAST" | "TOO_MANY_REQUESTS" | "UNAUTHORIZED" | "UNKNOWN_USER" | "UNPROCESSABLE" | "USER_INACTIVE" | "USER_NOT_FOUND" | "USER_SANCTIONED" | "WRONG_RESOURCE_TYPE";
+        ErrorCode: "ACCESS_REQUEST_COOLDOWN" | "ACCESS_REQUEST_NOT_APPROVED" | "ACCESS_REQUEST_NOT_FOUND" | "ACCESS_REQUEST_PENDING" | "ACCESS_REQUEST_REDEEMED" | "ALREADY_RESOLVED" | "ALREADY_STARTED" | "BAD_REQUEST" | "BUILDING_INACTIVE" | "BUILDING_NAME_TAKEN" | "BUILDING_NOT_ALLOWED" | "BUILDING_NOT_FOUND" | "BUILDING_REQUIRED" | "CANCEL_TOO_LATE" | "CANNOT_MANAGE_SELF" | "CAPACITY_REQUIRED" | "COMMENTS_REQUIRED" | "CONCURRENT_CONFLICT" | "CONFLICT" | "DATABASE_UNAVAILABLE" | "DEVICE_NOT_AUTHORIZED" | "DEVICE_NOT_FOUND" | "DOMAIN_NOT_ALLOWED" | "DUPLICATE" | "END_BEFORE_START" | "ERROR" | "FORBIDDEN" | "FORBIDDEN_ROLE" | "FORBIDDEN_ROLE_ASSIGNMENT" | "FOREIGN_KEY" | "HAS_FUTURE_RESERVATIONS" | "INVALID_DATE" | "INVALID_JOB_KEY" | "INVALID_RANGE" | "INVALID_TOKEN" | "LAB_REQUIRED" | "LAST_SUPERADMIN" | "MAX_DURATION" | "MIN_ADVANCE" | "NO_TOKEN" | "NOT_A_MANAGER" | "NOT_ALIGNED" | "NOT_CANCELLABLE" | "NOT_CHECKABLE" | "NOT_FOUND" | "NOT_OWNER" | "NOT_PENDING" | "NOT_REALLOCATABLE" | "NOT_YOUR_BUILDING" | "NOTHING_TO_CHANGE" | "NOTIFICATION_NOT_FOUND" | "ONLY_ROOMS" | "OUTSIDE_CHECKIN_WINDOW" | "PARENT_INACTIVE" | "PARENT_NOT_ALLOWED" | "RANGE_TOO_LONG" | "RESERVATION_NOT_FOUND" | "RESOURCE_INACTIVE" | "RESOURCE_NAME_TAKEN" | "RESOURCE_NOT_FOUND" | "ROLE_NOT_FOUND" | "SANCTION_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "SLOT_TAKEN" | "START_IN_PAST" | "TOO_MANY_REQUESTS" | "UNAUTHORIZED" | "UNKNOWN_USER" | "UNPROCESSABLE" | "USER_INACTIVE" | "USER_NOT_FOUND" | "USER_SANCTIONED" | "WRONG_RESOURCE_TYPE";
         ApiErrorResponseDto: {
             /** @example 404 */
             statusCode: number;
@@ -1051,6 +1068,30 @@ export interface components {
             createdAt: string;
             resources: components["schemas"]["ResourceResponseDto"][];
         };
+        FutureReservationUserDto: {
+            /** Format: uuid */
+            id: string;
+            fullName: string;
+            email: string;
+        };
+        FutureReservationResourceDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["ResourceType"];
+        };
+        FutureReservationResponseDto: {
+            /** Format: uuid */
+            id: string;
+            purpose: string;
+            status: string;
+            /** Format: date-time */
+            startDateTime: string;
+            /** Format: date-time */
+            endDateTime: string;
+            user: components["schemas"]["FutureReservationUserDto"];
+            resource: components["schemas"]["FutureReservationResourceDto"];
+        };
         CreateBuildingDto: {
             /** @description Unique building name */
             name: string;
@@ -1138,6 +1179,11 @@ export interface components {
             rules?: string;
         };
         UpdateResourceDto: {
+            /**
+             * Format: uuid
+             * @description Rooms and labs only: moves it (and the laptops of a lab) to another building
+             */
+            buildingId?: string;
             /**
              * Format: uuid
              * @description LAPTOP only: moves it to another lab
@@ -2583,6 +2629,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorResponseDto"];
                 };
             };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
         };
     };
     BuildingsController_create: {
@@ -2642,6 +2697,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorResponseDto"];
                 };
             };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
         };
     };
     BuildingsController_get: {
@@ -2692,6 +2756,15 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2760,6 +2833,81 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorResponseDto"];
                 };
             };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    BuildingsController_futureReservations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FutureReservationResponseDto"][];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
         };
     };
     ResourcesController_list: {
@@ -2816,6 +2964,15 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2892,6 +3049,15 @@ export interface operations {
                 };
             };
             /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -2950,6 +3116,15 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3028,6 +3203,15 @@ export interface operations {
                 };
             };
             /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3054,7 +3238,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>[];
+                    "application/json": components["schemas"]["FutureReservationResponseDto"][];
                 };
             };
             /** @description Error */
@@ -3094,6 +3278,15 @@ export interface operations {
                 };
             };
             /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3106,7 +3299,10 @@ export interface operations {
     };
     CatalogController_tree: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description true also returns inactive buildings */
+                includeInactive?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;

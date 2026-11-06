@@ -1,9 +1,11 @@
 'use client';
 
-import type { Reservation } from '@/api/types';
+import type { ReservationWithApprovals } from '@/api/types';
 import { Tag } from '@/components/shared/Tag';
+import { approvalOutcome, type ApprovalOutcome } from '@/lib/approval-outcome';
 import { formatRange } from '@/lib/booking-time';
 import {
+  approvalOutcomeLabels,
   myReservationsLabels as labels,
   purposeLabels,
   reservationStatusLabels,
@@ -15,12 +17,12 @@ import {
 } from '@/lib/reservation-actions';
 
 interface ReservationItemProps {
-  reservation: Reservation;
-  onEdit: (reservation: Reservation) => void;
-  onCancel: (reservation: Reservation) => void;
+  reservation: ReservationWithApprovals;
+  onEdit: (reservation: ReservationWithApprovals) => void;
+  onCancel: (reservation: ReservationWithApprovals) => void;
 }
 
-function StatusTag({ status }: { status: Reservation['status'] }) {
+function StatusTag({ status }: { status: ReservationWithApprovals['status'] }) {
   const variant =
     status === 'CONFIRMED' || status === 'CHECKED_IN'
       ? 'default'
@@ -30,8 +32,27 @@ function StatusTag({ status }: { status: Reservation['status'] }) {
   return <Tag variant={variant}>{reservationStatusLabels[status]}</Tag>;
 }
 
+function ApprovalNote({ outcome }: { outcome: ApprovalOutcome }) {
+  if (outcome.kind === 'WAITING') {
+    return <small className="text-ink-soft">{approvalOutcomeLabels.waiting}</small>;
+  }
+  if (outcome.kind === 'EXPIRED') {
+    return <small className="text-red-700">{approvalOutcomeLabels.expired}</small>;
+  }
+  if (outcome.kind === 'APPROVED') {
+    return <small className="text-ink-soft">{approvalOutcomeLabels.approvedBy(outcome.by)}</small>;
+  }
+  return (
+    <small className="flex flex-col text-red-700">
+      <span>{approvalOutcomeLabels.rejectedBy(outcome.by)}</span>
+      {outcome.comments && <span>{approvalOutcomeLabels.reason(outcome.comments)}</span>}
+    </small>
+  );
+}
+
 export function ReservationItem({ reservation, onEdit, onCancel }: ReservationItemProps) {
   const position = seriesPosition(reservation);
+  const outcome = approvalOutcome(reservation);
   const editable = canEditReservation(reservation);
   const cancellable = canCancelReservation(reservation);
   const open = reservation.status === 'CONFIRMED' || reservation.status === 'PENDING_APPROVAL';
@@ -60,6 +81,7 @@ export function ReservationItem({ reservation, onEdit, onCancel }: ReservationIt
           {reservation.attendees !== null && ` · ${labels.attendees(reservation.attendees)}`}
         </span>
         <span className="text-ink-soft">{reservation.justification}</span>
+        {outcome && <ApprovalNote outcome={outcome} />}
       </div>
 
       {open && (

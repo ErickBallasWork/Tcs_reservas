@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend de Reservas TCS · Banco Pichincha
 
-## Getting Started
+Web app responsive para reservar salas de reuniones, laboratorios de IA y laptops de IA. Está hecha con
+**Next.js 16** (App Router con `output: "export"`), React 19, TypeScript strict, Tailwind CSS 4 y
+shadcn/ui. Es un sitio estático que se publica en Azure Static Web Apps.
 
-First, run the development server:
+## Requisitos
+
+- Node.js 22 LTS (`.nvmrc`). Con nvm: `nvm use`. Otra versión de npm puede desincronizar el `package-lock.json`.
+- La API del backend corriendo en `http://localhost:3001/api/v1` para las pantallas conectadas.
+
+## Primer arranque
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm ci                         # dependencias y hooks de git
+cp .env.example .env.local     # variables públicas para desarrollo
+npm run dev                    # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Variables de entorno
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Las variables `NEXT_PUBLIC_*` se incrustan en el JavaScript **al compilar**: cambiar una exige volver a
+hacer `npm run build`. Se validan con zod en `src/lib/config.ts`: en cuanto el código importa
+`publicConfig`, la compilación falla si falta alguna o no es válida. Nunca pongas secretos aquí: todo lo que lleva `NEXT_PUBLIC_` es visible en el navegador.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable              | Obligatoria | Ejemplo                        | Descripción                              |
+| --------------------- | ----------- | ------------------------------ | ---------------------------------------- |
+| `NEXT_PUBLIC_API_URL` | sí          | `http://localhost:3001/api/v1` | URL base de la API, con `http` o `https` |
 
-## Learn More
+El Client ID de Google no se configura aquí: el frontend lo pide a la API en `GET /auth/config`.
 
-To learn more about Next.js, take a look at the following resources:
+## Comandos
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Comando             | Para qué                                                  |
+| ------------------- | --------------------------------------------------------- |
+| `npm run dev`       | Servidor de desarrollo                                    |
+| `npm run build`     | Genera el sitio estático en `out/`                        |
+| `npm run lint`      | ESLint (`lint:fix` corrige lo automático)                 |
+| `npm run format`    | Prettier sobre todo el repo (`format:check` solo revisa)  |
+| `npm run typecheck` | TypeScript sin compilar                                   |
+| `npm test`          | Pruebas unitarias con Vitest (`test:watch` en modo watch) |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Cada commit pasa por husky: `lint-staged` formatea y corrige los archivos en stage y `commitlint` exige
+[Conventional Commits](https://www.conventionalcommits.org/) (`feat(booking): ...`).
 
-## Deploy on Vercel
+## Estructura
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+src/
+├── app/                # rutas: páginas delgadas que componen AppShell + un feature
+├── features/<name>/    # UI y lógica de cada módulo
+├── components/ui/      # componentes de shadcn generados
+├── components/shared/  # piezas reutilizables entre features
+├── components/layout/  # AppShell y navegación
+├── lib/                # utilidades, configuración, auth, labels y reglas compartidas
+└── types/              # tipos de dominio
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Todo el texto visible está en español y centralizado en `src/lib/labels.ts`.
+- Los tests van junto al archivo: `booking-rules.ts` → `booking-rules.test.ts`.
+
+## CI y despliegue
+
+- CI (`.github/workflows/ci.yml`): en cada PR a `develop` o `main` y en cada push a `develop` corre lint,
+  formato, typecheck, tests y build.
+- Despliegue: el workflow de Azure Static Web Apps publica `out/` en cada push a `main`. Configura en
+  GitHub la protección de `main` para exigir que el check **CI** pase antes de mergear.
+- En el workflow de despliegue hay que definir `NEXT_PUBLIC_API_URL` con la URL de la API de Azure.

@@ -47,6 +47,8 @@ jobs:
         env:
           # Pon tu URL real aquí entre comillas para evitar que llegue undefined
           NEXT_PUBLIC_API_URL: "https://reservas-backend-d5bke4fyd8gnfza7.centralus-01.azurewebsites.net/api/v1"
+          # Temporal: habilita /login-pruebas. Quitar junto con el login de pruebas.
+          NEXT_PUBLIC_ENABLE_TEST_LOGIN: "true"
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'

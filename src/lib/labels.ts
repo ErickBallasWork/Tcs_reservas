@@ -455,6 +455,48 @@ export const myReservationsLabels = {
       : `Se cancelaron ${cancelled} reservas.`,
 };
 
+export const approvalsLabels = {
+  title: 'Bandeja de entrenamientos',
+  intro: 'Solicitudes de entrenamiento de las personas a tu cargo que esperan tu decisión.',
+  loading: 'Cargando solicitudes…',
+  retry: 'Reintentar',
+  empty: 'No tienes solicitudes pendientes.',
+  approve: 'Aprobar',
+  reject: 'Rechazar',
+  cancel: 'Cancelar',
+  saving: 'Guardando…',
+  requestedBy: (name: string) => `Solicita ${name}`,
+  attendees: (count: number) => `${count} ${count === 1 ? 'persona' : 'personas'}`,
+  seriesBadge: (index: number, total: number) => `Serie · ${index} de ${total}`,
+  seriesSummary: (pending: number, total: number) => `Serie · ${pending} de ${total} por decidir`,
+  approveAll: (count: number) => `Aprobar las ${count}`,
+  rejectAll: (count: number) => `Rechazar las ${count}`,
+  showDates: 'Ver fechas',
+  hideDates: 'Ocultar fechas',
+  approveTitle: 'Aprobar entrenamiento',
+  rejectTitle: 'Rechazar entrenamiento',
+  approveSingle: (name: string, who: string) => `Se confirmará la reserva de ${name} de ${who}.`,
+  approveSeries: (count: number, who: string) =>
+    `Se confirmarán ${count} reservas pendientes de ${who}.`,
+  rejectSingle: (name: string, who: string) =>
+    `Se rechazará la reserva de ${name} de ${who} y se liberará la franja. El motivo le llegará a la persona.`,
+  rejectSeries: (count: number, who: string) =>
+    `Se rechazarán ${count} reservas pendientes de ${who} y se liberarán sus franjas. El motivo le llegará a la persona.`,
+  reason: 'Motivo del rechazo',
+  reasonRequired: 'Escribe el motivo para poder rechazar.',
+  seriesSkipped: (count: number) =>
+    `${count} ${count === 1 ? 'fecha ya la había decidido' : 'fechas ya las había decidido'} otra persona.`,
+  dismiss: 'Cerrar',
+};
+
+export const approvalOutcomeLabels = {
+  waiting: 'Esperando la decisión del Líder.',
+  expired: 'No se aprobó antes de su inicio, por eso se rechazó.',
+  approvedBy: (name: string) => `Aprobada por ${name}.`,
+  rejectedBy: (name: string) => `Rechazada por ${name}.`,
+  reason: (comments: string) => `Motivo: ${comments}`,
+};
+
 export const weekdayFullLabels = [
   'Domingo',
   'Lunes',

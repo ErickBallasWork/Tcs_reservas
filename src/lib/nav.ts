@@ -40,6 +40,12 @@ const OPERATING_HOURS: NavItem = {
   shortLabel: 'Horario',
 };
 
+const TRAINING_INBOX: NavItem = {
+  href: '/leader/inbox',
+  label: 'Bandeja de entrenamientos',
+  shortLabel: 'Bandeja',
+};
+
 export const navByRole: Record<Role, NavItem[]> = {
   ASOCIADO: [
     { href: '/availability', label: 'Disponibilidad', shortLabel: 'Disponib.' },
@@ -55,10 +61,11 @@ export const navByRole: Record<Role, NavItem[]> = {
     OPERATING_HOURS,
     { href: '/admin/sanctions', label: 'Sanciones y auditoría', shortLabel: 'Sanciones' },
     { href: '/admin/reports', label: 'Reportes', shortLabel: 'Reportes' },
+    TRAINING_INBOX,
   ],
   SPOC_ADMIN: [{ href: '/leader/dashboard', label: 'Panel de seguimiento', shortLabel: 'Panel' }],
   LIDER: [
-    { href: '/leader/inbox', label: 'Bandeja de entrenamientos', shortLabel: 'Bandeja' },
+    TRAINING_INBOX,
     { href: '/leader/dashboard', label: 'Panel de seguimiento', shortLabel: 'Panel' },
   ],
   SPOC_EDIFICIO: [{ href: '/spoc/agenda', label: 'Agenda de salas', shortLabel: 'Agenda' }],
@@ -70,6 +77,7 @@ export const navByRole: Record<Role, NavItem[]> = {
     ADMIN_CATALOG,
     OPERATING_HOURS,
     CATALOG,
+    TRAINING_INBOX,
   ],
 };
 

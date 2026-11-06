@@ -32,6 +32,17 @@ describe('navForRoles', () => {
     expect(hrefs(['SUPERADMIN'])).toContain('/admin/access-requests');
   });
 
+  it.each([['LIDER'], ['ADMIN'], ['SUPERADMIN']] as const)(
+    'gives the training inbox to %s',
+    (role) => {
+      expect(hrefs([role])).toContain('/leader/inbox');
+    },
+  );
+
+  it('keeps the training inbox away from associates', () => {
+    expect(hrefs(['ASOCIADO'])).not.toContain('/leader/inbox');
+  });
+
   it('lets an ADMIN manage users', () => {
     expect(hrefs(['ADMIN'])).toContain('/admin/users');
   });

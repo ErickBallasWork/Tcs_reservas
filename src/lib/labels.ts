@@ -671,3 +671,75 @@ export const reallocationLabels = {
     NOTHING_TO_CHANGE: 'Cambia la sala o el horario para continuar.',
   } satisfies Record<ReallocationProblem, string>,
 };
+
+export const notificationsLabels = {
+  nowHeading: 'Ahora',
+  inboxHeading: 'Bandeja',
+  filterAll: 'Todas',
+  filterUnread: 'Sin leer',
+  filters: 'Filtrar avisos',
+  markAllRead: 'Marcar todas como leídas',
+  markRead: 'Marcar como leída',
+  emptyAll: 'No tienes avisos.',
+  emptyUnread: 'No tienes avisos sin leer.',
+  loading: 'Cargando tus avisos…',
+  retry: 'Reintentar',
+  previous: 'Anterior',
+  next: 'Siguiente',
+  pagination: 'Paginación',
+  page: (page: number, total: number) => `Página ${page} de ${total}`,
+  unreadBadge: (count: number) => (count === 1 ? '1 aviso sin leer' : `${count} avisos sin leer`),
+  unreadTag: 'Sin leer',
+  checkingIn: 'Registrando…',
+};
+
+export const notificationCardLabels = {
+  eyebrow: {
+    nextReservation: 'TU PRÓXIMA RESERVA',
+    inProgress: 'EN CURSO',
+    yourReservation: 'TU RESERVA',
+    leaderAnswer: 'RESPUESTA DEL LÍDER',
+    reservationChange: 'CAMBIO EN TU RESERVA',
+    expiredRequest: 'SOLICITUD VENCIDA',
+    noShow: 'INASISTENCIA',
+    sanction: 'SANCIÓN',
+    toApprove: 'POR APROBAR',
+    accessRequest: 'SOLICITUD DE ACCESO',
+  },
+  checkInOpen: {
+    title: 'Check-in abierto',
+    detail: (resource: string, from: string, to: string, minutesLeft: number) =>
+      `${resource} · ${from} a ${to} · quedan ${minutesLeft} min`,
+    consequence: (closesAt: string) =>
+      `Si no registras tu llegada antes de las ${closesAt}, se marca inasistencia y no podrás reservar hasta que un administrador la regularice.`,
+    action: 'Registrar llegada',
+  },
+  startsSoon: {
+    title: 'Tu reserva empieza pronto',
+    detail: (resource: string, from: string, to: string, minutesLeft: number) =>
+      `${resource} · ${from} a ${to} · empieza en ${minutesLeft} min`,
+    consequence: (opensAt: string) => `El registro de llegada abre a las ${opensAt}.`,
+    action: 'Ver reserva',
+  },
+  endsSoon: {
+    title: 'Tu reserva termina pronto',
+    detail: (resource: string, to: string, minutesLeft: number) =>
+      `${resource} · hasta ${to} · quedan ${minutesLeft} min`,
+    consequence: (endsAt: string) =>
+      `A las ${endsAt} el espacio queda libre para la siguiente persona.`,
+    action: 'Ver reserva',
+  },
+  actions: {
+    viewReservation: 'Ver reserva',
+    bookAgain: 'Reservar de nuevo',
+    book: 'Reservar',
+    reviewRequest: 'Revisar solicitud',
+    understood: 'Entendido',
+  },
+  consequences: {
+    rejected: 'El horario quedó libre. Puedes volver a solicitarlo.',
+    expired: 'La franja quedó libre. Puedes volver a solicitarla.',
+    accessRequest: 'Esa persona no puede ingresar hasta que la decidas.',
+    approvalRequested: 'Si no la decides antes del inicio, se rechaza sola.',
+  },
+};

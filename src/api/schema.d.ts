@@ -2230,9 +2230,7 @@ export interface operations {
     NotificationsController_registerPush: {
         parameters: {
             query?: never;
-            header: {
-                "user-agent": string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };

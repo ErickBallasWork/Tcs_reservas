@@ -36,6 +36,20 @@ describe('navForRoles', () => {
     expect(hrefs(['ADMIN'])).toContain('/admin/users');
   });
 
+  it.each([['ADMIN'], ['SUPERADMIN']] as const)(
+    'gives the catalog administration screens to %s',
+    (role) => {
+      expect(hrefs([role])).toEqual(
+        expect.arrayContaining(['/admin/buildings', '/admin/resources', '/admin/catalog']),
+      );
+    },
+  );
+
+  it('keeps the catalog administration away from associates', () => {
+    expect(hrefs(['ASOCIADO', 'LIDER'])).not.toContain('/admin/buildings');
+    expect(canOpen(['ASOCIADO'], '/admin/catalog')).toBe(false);
+  });
+
   it('is empty without roles', () => {
     expect(navForRoles([])).toEqual([]);
   });

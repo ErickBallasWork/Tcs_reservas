@@ -6,12 +6,13 @@ import { useAuth } from '@/lib/auth';
 import { homeForRoles } from '@/lib/nav';
 
 export default function Home() {
-  const { role } = useAuth();
+  const { status, roles } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    router.replace(homeForRoles([role]));
-  }, [role, router]);
+    if (status === 'authenticated') router.replace(homeForRoles(roles));
+    else if (status === 'anonymous' || status === 'unavailable') router.replace('/login');
+  }, [status, roles, router]);
 
   return null;
 }

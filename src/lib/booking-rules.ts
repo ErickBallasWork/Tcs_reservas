@@ -21,8 +21,6 @@ export interface BookingCheck {
   missingFields: boolean;
 }
 
-// Resources whose slots collide with the selected one:
-// a lab blocks its laptops and a reserved laptop blocks the whole lab.
 function getConflictingResourceIds(resourceId: string): string[] {
   const resource = resources.find((r) => r.id === resourceId);
   if (!resource) return [resourceId];

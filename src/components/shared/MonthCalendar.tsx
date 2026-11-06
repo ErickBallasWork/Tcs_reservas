@@ -47,7 +47,7 @@ function WeekdayHeader() {
 }
 
 interface CalendarCommonProps {
-  selected: string; // YYYY-MM-DD
+  selected: string;
   markedDates: Set<string>;
   firstSelectableDate: string;
   onSelect: (date: string) => void;
@@ -55,7 +55,7 @@ interface CalendarCommonProps {
 
 interface MonthCalendarProps extends CalendarCommonProps {
   year: number;
-  month: number; // 0-based
+  month: number;
 }
 
 export function MonthCalendar({
@@ -67,7 +67,8 @@ export function MonthCalendar({
   onSelect,
 }: MonthCalendarProps) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const offset = (new Date(year, month, 1).getDay() + 6) % 7; // week starts on Monday
+  // Shifted so the week starts on Monday.
+  const offset = (new Date(year, month, 1).getDay() + 6) % 7;
 
   return (
     <div className="grid grid-cols-7 gap-1 text-center">

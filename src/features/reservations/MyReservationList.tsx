@@ -33,14 +33,12 @@ export function MyReservationsList() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Banner de aviso de aprobación cuando hay entrenamientos pendientes */}
       {hasPendingTraining && (
         <div className="panel border-amber-200 bg-amber-50 p-3 text-xs font-medium text-amber-900 md:text-sm">
           Entrenamiento pendiente de aprobación del Líder. El espacio queda bloqueado.
         </div>
       )}
 
-      {/* --- VISTA DESKTOP (Tabla) --- */}
       <div className="panel hidden overflow-x-auto p-0 md:block">
         <table className="w-full border-collapse text-left text-sm">
           <thead>
@@ -82,7 +80,6 @@ export function MyReservationsList() {
         </table>
       </div>
 
-      {/* --- VISTA MÓVIL (Tarjetas idénticas al PDF) --- */}
       <div className="flex flex-col gap-3 md:hidden">
         {reservationList.map((item) => (
           <div key={item.id} className="panel flex flex-col gap-3 p-4">
@@ -98,7 +95,6 @@ export function MyReservationsList() {
               </span>
             </div>
 
-            {/* Botón de cancelar abajo y abarcando todo el ancho en móvil */}
             {item.status !== 'cancelled' && item.status !== 'rejected' && (
               <button
                 type="button"

@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 
 export type PermissionState = NotificationPermission | 'unsupported';
 
-// Set to false to make browser notifications optional
 export const REQUIRE_NOTIFICATIONS = true;
 
 export function getPermissionState(): PermissionState {
@@ -14,7 +13,7 @@ export function getPermissionState(): PermissionState {
   return Notification.permission;
 }
 
-// Must be called from a user gesture (click / submit)
+// Browsers only allow this call from a user gesture.
 export async function requestPermission(): Promise<PermissionState> {
   if (typeof window === 'undefined' || !('Notification' in window)) {
     return 'unsupported';
@@ -53,7 +52,6 @@ export async function showSystemNotification(title: string, body: string) {
   }
 }
 
-// Current permission, kept in sync if the user changes it in the browser
 export function useNotificationPermission() {
   const [state, setState] = useState<PermissionState | null>(null);
 
@@ -79,5 +77,5 @@ export function useNotificationPermission() {
     };
   }, []);
 
-  return state; // null until it has been read on the client
+  return state;
 }

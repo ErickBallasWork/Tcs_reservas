@@ -2,8 +2,8 @@ import type { Role } from '@/types';
 
 export interface NavItem {
   href: string;
-  label: string; // desktop sidebar label
-  shortLabel: string; // mobile bottom-nav label
+  label: string;
+  shortLabel: string;
 }
 
 export const navByRole: Record<Role, NavItem[]> = {

@@ -29,7 +29,7 @@ export interface Reservation {
   id: string;
   resourceId: string;
   associateName: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   startHour: number;
   endHour: number;
   reason: ReservationReason;

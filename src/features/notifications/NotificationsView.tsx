@@ -36,7 +36,6 @@ export function NotificationsView() {
     setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   const markAllRead = () => setItems((prev) => prev.map((n) => ({ ...n, read: true })));
 
-  // Demo: adds an in-app notice and shows it as a browser notification
   const sendTest = () => {
     const note: AppNotification = {
       id: `n-${Date.now()}`,
@@ -51,7 +50,6 @@ export function NotificationsView() {
 
   const registerUsage = () => {
     setIsRegistering(true);
-    // Simulated request; replace with the real API call later
     setTimeout(() => {
       setIsRegistering(false);
       setUsageRegistered(true);
@@ -68,7 +66,6 @@ export function NotificationsView() {
   return (
     <>
       <div className="grid gap-4 md:grid-cols-[3fr_2fr]">
-        {/* Desktop: notification center */}
         <div className="panel hidden flex-col gap-3 md:flex">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-base font-bold text-brand">Centro de notificaciones</h2>
@@ -109,7 +106,6 @@ export function NotificationsView() {
           )}
         </div>
 
-        {/* Mobile: notification cards */}
         <div className="flex flex-col gap-3 md:hidden">
           {items.map((n) => (
             <div key={n.id} className="panel flex flex-col gap-3">
@@ -128,7 +124,6 @@ export function NotificationsView() {
           )}
         </div>
 
-        {/* Usage + block */}
         <div className="flex flex-col gap-3">
           <div className="panel flex flex-col gap-3">
             <h2 className="text-base font-bold text-brand max-md:text-[15px]">Registrar uso</h2>
@@ -153,7 +148,6 @@ export function NotificationsView() {
         </div>
       </div>
 
-      {/* Demo only: remove when real notifications arrive from the backend */}
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" className="btn btn-outline" onClick={sendTest}>
           Enviar aviso de prueba

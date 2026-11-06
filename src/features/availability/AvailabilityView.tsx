@@ -6,7 +6,7 @@ import { es } from 'date-fns/locale';
 import { MonthCalendar, WeekStrip } from '@/components/shared/MonthCalendar';
 import { SlotCell } from '@/components/shared/SlotCell';
 import { Tag } from '@/components/shared/Tag';
-import { BookingForm } from '@/features/booking/BookingForm'; // <--- Tu formulario de reservas
+import { BookingForm } from '@/features/booking/BookingForm';
 import {
   DEFAULT_DATE,
   FIRST_SELECTABLE_DATE,
@@ -41,7 +41,6 @@ export function AvailabilityView() {
   const [rangeValue, setRangeValue] = useState('morning');
   const [minCapacity, setMinCapacity] = useState('');
 
-  // Estado para controlar el Modal de Reserva
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const markedDates = useMemo(() => getDaysWithReservations(), []);
@@ -84,7 +83,6 @@ export function AvailabilityView() {
 
   return (
     <>
-      {/* Desktop */}
       <div className="hidden gap-4 md:grid md:grid-cols-[300px_1fr]">
         <div className="panel flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
@@ -168,7 +166,6 @@ export function AvailabilityView() {
               <Tag variant="dark">Ocupado</Tag>
               <Tag variant="gold">Bloqueado por laboratorio</Tag>
               <span className="flex-1" />
-              {/* Botón que abre el modal en lugar de usar Link */}
               <button type="button" onClick={openModal} className="btn btn-gold">
                 Reservar
               </button>
@@ -177,7 +174,6 @@ export function AvailabilityView() {
         </div>
       </div>
 
-      {/* Mobile */}
       <div className="flex flex-col gap-3 md:hidden">
         <div className="flex items-start justify-between gap-3">
           <b>Noviembre 2026</b>
@@ -211,10 +207,8 @@ export function AvailabilityView() {
         )}
       </div>
 
-      {/* --- MODAL FLOTANTE DE RESERVA --- */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 backdrop-blur-sm sm:p-4">
-          {/* CAMBIA ESTA LÍNEA EXACTAMENTE ASÍ */}
           <div className="panel relative max-h-[95vh] w-full max-w-[95vw] overflow-y-auto bg-white p-6 shadow-xl sm:max-w-7xl">
             <div className="mb-4 flex items-center justify-between border-b border-line pb-3">
               <h3 className="text-lg font-bold text-brand">Nueva reserva</h3>

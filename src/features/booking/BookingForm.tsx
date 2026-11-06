@@ -42,18 +42,16 @@ const formatDateTime = (value: string) =>
 export function BookingForm() {
   const params = useSearchParams();
 
-  // En BookingForm.tsx, dentro de la inicialización del estado:
   const [initial] = useState(() => {
     const preset = activeResources.find((r) => r.id === params.get('resource'));
     const dateParam = params.get('date');
-    const hourParam = params.get('hour'); // <--- Captura la hora seleccionada
+    const hourParam = params.get('hour');
 
     const date =
       dateParam && dateParam >= FIRST_SELECTABLE_DATE ? dateParam : FIRST_SELECTABLE_DATE;
 
     const type: ResourceType = preset?.type ?? 'room';
 
-    // Si viene una hora específica, la usamos como inicio y sumamos 1 hora para el fin por defecto
     const startHour = hourParam ? Number(hourParam) : 10;
     const endHour = startHour + 1;
     const pad = (n: number) => String(n).padStart(2, '0');
@@ -116,7 +114,6 @@ export function BookingForm() {
     }
 
     setIsSubmitting(true);
-    // Simulated request; replace with the real API call later
     setTimeout(() => {
       const resource = activeResources.find((r) => r.id === resourceId);
       setFeedback({
@@ -216,7 +213,6 @@ export function BookingForm() {
           />
         </label>
 
-        {/* Mobile: only the violated rules, right above the button */}
         <div className="flex flex-col gap-3 md:hidden">
           {rules
             .filter((r) => r.violated)
@@ -238,7 +234,6 @@ export function BookingForm() {
         </button>
       </form>
 
-      {/* Desktop: validations card */}
       <div className="panel hidden flex-col gap-3 md:flex">
         <h2 className="text-base font-bold text-brand">Validaciones</h2>
         {rules.map((r) => (

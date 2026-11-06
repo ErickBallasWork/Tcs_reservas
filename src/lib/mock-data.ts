@@ -129,5 +129,4 @@ export const pendingUsage = {
   slotLabel: 'hoy 10:00-12:00',
 };
 
-// Demo: the user has an active No-Show sanction
 export const isUserBlocked = true;

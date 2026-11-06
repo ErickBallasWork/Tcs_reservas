@@ -78,7 +78,7 @@ export default function LoginPage() {
       void showSystemNotification('Notificaciones activadas', 'Recibirás avisos de tus reservas.');
     }
 
-    login(normalized); // TODO: replace with the real MSAL / Entra ID login
+    login(normalized);
     router.push('/');
   };
 

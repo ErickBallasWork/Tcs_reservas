@@ -25,7 +25,6 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
   const router = useRouter();
   const [moreOpen, setMoreOpen] = useState(false);
 
-  // Access guard: needs a session and, when required, notification permission
   useEffect(() => {
     if (!ready || permission === null) return;
     if (!session) {
@@ -47,7 +46,6 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
   const items = navByRole[role];
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
-  // Mobile: with more than 4 items, show 3 + a "Más" button
   const overflow = items.length > MOBILE_SLOTS;
   const mobilePrimary = overflow ? items.slice(0, MOBILE_SLOTS - 1) : items;
   const mobileMore = overflow ? items.slice(MOBILE_SLOTS - 1) : [];
@@ -63,7 +61,6 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
     router.replace('/login');
   };
 
-  // Temporary selector to test every role without a real login
   const roleSelect = (
     <select
       aria-label="Cambiar rol (demo)"
@@ -81,7 +78,6 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen bg-surface text-ink">
-      {/* Desktop sidebar */}
       <aside className="hidden w-[236px] shrink-0 flex-col gap-1.5 bg-brand px-3.5 py-5 text-white md:flex">
         <div className="px-3 pt-1 pb-3.5 text-xl font-extrabold">
           TCS <b className="text-gold">Reservas</b>
@@ -113,14 +109,12 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Mobile header */}
         <header className="flex items-center justify-between gap-3 bg-brand p-5 text-lg font-bold text-white md:hidden">
           <span>{mobileTitle ?? title}</span>
           <div className="w-36 text-sm font-normal">{roleSelect}</div>
         </header>
 
         <main className="flex flex-1 flex-col gap-4 p-4 pb-24 md:px-[30px] md:py-[22px] md:pb-[22px]">
-          {/* Desktop title + role tag */}
           <div className="hidden items-center justify-between gap-3 md:flex">
             <h1 className="text-[22px] font-bold text-brand">{title}</h1>
             <span className="rounded-full bg-brand px-2.5 py-[3px] text-xs font-bold text-white">
@@ -131,7 +125,6 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
         </main>
       </div>
 
-      {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 flex border-t border-line bg-white md:hidden">
         {mobilePrimary.map((item) => (
           <Link

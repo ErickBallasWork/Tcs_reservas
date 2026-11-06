@@ -1,25 +1,33 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { MonthCalendar, WeekStrip } from "@/components/shared/MonthCalendar";
 import { SlotCell } from "@/components/shared/SlotCell";
 import { Tag } from "@/components/shared/Tag";
-import { BookingForm } from "@/features/booking/BookingForm"; // <--- Tu formulario de reservas
+import { BookingForm } from "@/features/booking/BookingForm";
 import {
   DEFAULT_DATE,
   FIRST_SELECTABLE_DATE,
   getDaysWithReservations,
   getSlotStatus,
 } from "@/lib/availability";
-import { buildings, resources } from "@/lib/mock-data";
-import type { ResourceType, SlotStatus } from "@/types";
+import { buildings as fallbackBuildings, resources as fallbackResources } from "@/lib/mock-data";
+import type { Building, Resource, ResourceType, SlotStatus } from "@/types";
+import type { BackendResourceType } from "@/types/api";
+import { api } from "@/lib/api";
 
 const HOUR_RANGES = [
   { value: "morning", label: "08:00–13:00", hours: [8, 9, 10, 11, 12] },
   { value: "afternoon", label: "13:00–18:00", hours: [13, 14, 15, 16, 17] },
 ];
+
+const BACKEND_TYPE_TO_FRONTEND: Record<BackendResourceType, ResourceType> = {
+  MEETING_ROOM: "room",
+  AI_LAB: "ai_lab",
+  LAPTOP: "laptop",
+};
 
 const TYPE_ORDER: Record<ResourceType, number> = {
   room: 0,
@@ -41,17 +49,112 @@ export function AvailabilityView() {
   const [rangeValue, setRangeValue] = useState("morning");
   const [minCapacity, setMinCapacity] = useState("");
 
-  // Estado para controlar el Modal de Reserva
+  const [buildingList, setBuildingList] = useState<Building[]>(fallbackBuildings);
+  const [resourceList, setResourceList] = useState<Resource[]>(fallbackResources);
+  const [busySlotsMap, setBusySlotsMap] = useState<Record<string, string[]>>({});
+
+  // Control del modal de reserva
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedResource, setSelectedResource] = useState<string | undefined>(undefined);
+
+  // Cargar edificios y recursos reales del backend
+  useEffect(() => {
+    let isMounted = true;
+    async function loadCatalog() {
+      try {
+        const [apiBuildings, apiResources] = await Promise.all([
+          api.catalog.getBuildings(),
+          api.catalog.getResources(),
+        ]);
+
+        if (isMounted) {
+          if (apiBuildings.length > 0) {
+            const mappedBuildings: Building[] = apiBuildings.map((b) => ({
+              id: b.id,
+              name: b.name,
+              address: b.address || "",
+              active: b.isActive,
+            }));
+            setBuildingList(mappedBuildings);
+            setBuildingId(mappedBuildings[0].id);
+          }
+
+          if (apiResources.length > 0) {
+            const mappedResources: Resource[] = apiResources.map((r) => ({
+              id: r.id,
+              name: r.name,
+              type: BACKEND_TYPE_TO_FRONTEND[r.type] || "room",
+              buildingId: r.buildingId,
+              capacity: r.capacity,
+              active: r.isActive,
+              parentLabId: r.parentResourceId || undefined,
+            }));
+            setResourceList(mappedResources);
+          }
+        }
+      } catch {
+        // Mantiene fallbacks
+      }
+    }
+
+    void loadCatalog();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Consultar disponibilidad real del backend para el edificio y fecha seleccionados
+  useEffect(() => {
+    let isMounted = true;
+    async function loadAvailability() {
+      try {
+        const from = `${date}T00:00:00Z`;
+        const to = `${date}T23:59:59Z`;
+        
+        // Obtener recursos del edificio actual
+        const currentResources = resourceList.filter(
+          (r) => r.active && r.buildingId === buildingId
+        );
+
+        if (currentResources.length === 0) return;
+
+        // Consultar slots de las salas y laboratorios principales
+        const promises = currentResources
+          .filter((r) => r.type !== "laptop")
+          .map((r) => api.availability.getResource(r.id, from, to).catch(() => null));
+
+        const results = await Promise.all(promises);
+
+        if (isMounted) {
+          const newBusyMap: Record<string, string[]> = {};
+          for (const res of results) {
+            if (!res) continue;
+            newBusyMap[res.resourceId] = res.busySlots;
+            if (res.laptops) {
+              for (const lap of res.laptops) {
+                newBusyMap[lap.id] = lap.busySlots;
+              }
+            }
+          }
+          setBusySlotsMap(newBusyMap);
+        }
+      } catch {
+        // Fallback
+      }
+    }
+
+    void loadAvailability();
+    return () => {
+      isMounted = false;
+    };
+  }, [date, buildingId, resourceList]);
 
   const markedDates = useMemo(() => getDaysWithReservations(), []);
-  const activeBuildings = buildings.filter((b) => b.active);
+  const activeBuildings = buildingList.filter((b) => b.active);
   const hours = HOUR_RANGES.find((r) => r.value === rangeValue)!.hours;
 
   const rows = useMemo(() => {
     const min = Number(minCapacity) || 0;
-    return resources
+    return resourceList
       .filter(
         (r) =>
           r.active &&
@@ -59,7 +162,7 @@ export function AvailabilityView() {
           (r.type === "laptop" || (r.capacity ?? 0) >= min),
       )
       .sort((a, b) => TYPE_ORDER[a.type] - TYPE_ORDER[b.type]);
-  }, [buildingId, minCapacity]);
+  }, [buildingId, minCapacity, resourceList]);
 
   const rawTitle = format(parseISO(date), "EEEE d 'de' MMMM", { locale: es });
   const dateTitle = rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1);
@@ -69,6 +172,33 @@ export function AvailabilityView() {
     markedDates,
     firstSelectableDate: FIRST_SELECTABLE_DATE,
     onSelect: setDate,
+  };
+
+  const calculateSlotStatus = (resource: Resource, h: number): SlotStatus => {
+    const slots = busySlotsMap[resource.id];
+    if (slots && slots.length > 0) {
+      // El slot ISO viene como 2026-11-12T15:00:00.000Z
+      const isBusy = slots.some((s) => {
+        const slotDate = new Date(s);
+        return slotDate.getUTCHours() === h || slotDate.getHours() === h;
+      });
+      if (isBusy) return "occupied";
+    }
+
+    // Si es laptop y su lab está ocupado
+    if (resource.type === "laptop" && resource.parentLabId) {
+      const parentSlots = busySlotsMap[resource.parentLabId];
+      if (parentSlots && parentSlots.length > 0) {
+        const parentBusy = parentSlots.some((s) => {
+          const slotDate = new Date(s);
+          return slotDate.getUTCHours() === h || slotDate.getHours() === h;
+        });
+        if (parentBusy) return "blocked";
+      }
+    }
+
+    // Si no tenemos datos del backend para ese recurso, usamos el cálculo local
+    return getSlotStatus(resource, date, h);
   };
 
   const buildingSelect = (
@@ -85,8 +215,7 @@ export function AvailabilityView() {
     </select>
   );
 
-  const openModal = (resourceId?: string) => {
-    setSelectedResource(resourceId);
+  const openModal = () => {
     setIsModalOpen(true);
   };
 
@@ -165,7 +294,7 @@ export function AvailabilityView() {
                       </td>
                       {hours.map((h) => (
                         <td key={h} className="border-b border-soft px-2 py-1.5">
-                          <SlotCell status={getSlotStatus(r, date, h)} />
+                          <SlotCell status={calculateSlotStatus(r, h)} />
                         </td>
                       ))}
                     </tr>
@@ -178,10 +307,9 @@ export function AvailabilityView() {
               <Tag variant="dark">Ocupado</Tag>
               <Tag variant="gold">Bloqueado por laboratorio</Tag>
               <span className="flex-1" />
-              {/* Botón que abre el modal en lugar de usar Link */}
               <button
                 type="button"
-                onClick={() => openModal()}
+                onClick={openModal}
                 className="btn btn-gold"
               >
                 Reservar
@@ -207,14 +335,14 @@ export function AvailabilityView() {
             <b>{r.name}</b>
             <div className="flex flex-wrap items-center gap-3">
               {hours.map((h) => (
-                <Tag key={h} variant={mobileTagVariant[getSlotStatus(r, date, h)]}>
+                <Tag key={h} variant={mobileTagVariant[calculateSlotStatus(r, h)]}>
                   {hourLabel(h)}
                 </Tag>
               ))}
             </div>
             <button
               type="button"
-              onClick={() => openModal(r.id)}
+              onClick={openModal}
               className="btn btn-gold"
             >
               Reservar
@@ -234,24 +362,23 @@ export function AvailabilityView() {
       </div>
 
       {/* --- MODAL FLOTANTE DE RESERVA --- */}
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4 backdrop-blur-sm">
-            {/* CAMBIA ESTA LÍNEA EXACTAMENTE ASÍ */}
-            <div className="panel relative max-h-[95vh] w-full max-w-[95vw] sm:max-w-7xl overflow-y-auto bg-white p-6 shadow-xl">
-              <div className="mb-4 flex items-center justify-between border-b border-line pb-3">
-                <h3 className="text-lg font-bold text-brand">Nueva reserva</h3>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="text-sm font-bold text-ink-soft hover:text-brand"
-                >
-                  ✕ Cerrar
-                </button>
-              </div>
-              <BookingForm />
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4 backdrop-blur-sm">
+          <div className="panel relative max-h-[95vh] w-full max-w-[95vw] sm:max-w-7xl overflow-y-auto bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between border-b border-line pb-3">
+              <h3 className="text-lg font-bold text-brand">Nueva reserva</h3>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="text-sm font-bold text-ink-soft hover:text-brand"
+              >
+                ✕ Cerrar
+              </button>
             </div>
+            <BookingForm />
           </div>
-        )}
+        </div>
+      )}
     </>
   );
 }

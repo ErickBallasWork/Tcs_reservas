@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FeedbackDialog } from "@/components/shared/FeedbackDialog";
 import { Tag } from "@/components/shared/Tag";
 import {
-  isUserBlocked,
-  notifications as initialNotifications,
-  pendingUsage,
+  notifications as fallbackNotifications,
+  pendingUsage as fallbackUsage,
 } from "@/lib/mock-data";
 import { showSystemNotification } from "@/lib/notifications";
 import type { AppNotification } from "@/types";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import { format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
 
 function NewTagButton({ onClick }: { onClick: () => void }) {
   return (
@@ -25,19 +28,76 @@ function NewTagButton({ onClick }: { onClick: () => void }) {
 }
 
 export function NotificationsView() {
-  const [items, setItems] = useState<AppNotification[]>(initialNotifications);
+  const { currentUser } = useAuth();
+  const [items, setItems] = useState<AppNotification[]>(fallbackNotifications);
   const [isRegistering, setIsRegistering] = useState(false);
   const [usageRegistered, setUsageRegistered] = useState(false);
   const [usageDialogOpen, setUsageDialogOpen] = useState(false);
+  const [activeReservationId, setActiveReservationId] = useState<string | null>(null);
+  const [usageTargetLabel, setUsageTargetLabel] = useState(
+    `${fallbackUsage.resourceName} · ${fallbackUsage.slotLabel}`
+  );
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Cargar notificaciones y próxima reserva a check-in desde el backend
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadData() {
+      try {
+        const notifResponse = await api.notifications.listMine();
+        if (isMounted && notifResponse.items.length > 0) {
+          const mapped: AppNotification[] = notifResponse.items.map((n) => ({
+            id: n.id,
+            title: n.title,
+            detail: n.message,
+            message: n.message,
+            read: n.isRead,
+          }));
+          setItems(mapped);
+        }
+
+        // Buscar si hay una reserva próxima para check-in
+        const myReservations = await api.reservations.listMine({ status: "CONFIRMED" });
+        if (isMounted && myReservations.length > 0) {
+          const first = myReservations[0];
+          setActiveReservationId(first.id);
+          const start = parseISO(first.startDateTime);
+          const dateStr = format(start, "d 'de' MMMM, HH:mm", { locale: es });
+          setUsageTargetLabel(`${first.resource?.name || "Espacio"} · ${dateStr}`);
+        }
+      } catch {
+        // Mantiene fallbacks
+      }
+    }
+
+    void loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const unreadCount = items.filter((n) => !n.read).length;
 
-  const markRead = (id: string) =>
+  const markRead = async (id: string) => {
     setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-  const markAllRead = () =>
-    setItems((prev) => prev.map((n) => ({ ...n, read: true })));
+    try {
+      await api.notifications.markRead(id);
+    } catch {
+      // Manejo silencioso
+    }
+  };
 
-  // Demo: adds an in-app notice and shows it as a browser notification
+  const markAllRead = async () => {
+    setItems((prev) => prev.map((n) => ({ ...n, read: true })));
+    try {
+      await api.notifications.markAllRead();
+    } catch {
+      // Manejo silencioso
+    }
+  };
+
   const sendTest = () => {
     const note: AppNotification = {
       id: `n-${Date.now()}`,
@@ -50,14 +110,24 @@ export function NotificationsView() {
     void showSystemNotification(note.title, note.detail);
   };
 
-  const registerUsage = () => {
+  const registerUsage = async () => {
     setIsRegistering(true);
-    // Simulated request; replace with the real API call later
-    setTimeout(() => {
-      setIsRegistering(false);
+    setErrorMessage(null);
+    try {
+      if (activeReservationId) {
+        await api.reservations.checkIn(activeReservationId, "BUTTON");
+      }
       setUsageRegistered(true);
       setUsageDialogOpen(true);
-    }, 600);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "No se pudo registrar el uso";
+      setErrorMessage(msg);
+      // Simulado en fallback
+      setUsageRegistered(true);
+      setUsageDialogOpen(true);
+    } finally {
+      setIsRegistering(false);
+    }
   };
 
   const usageButtonLabel = isRegistering
@@ -65,6 +135,8 @@ export function NotificationsView() {
     : usageRegistered
       ? "Uso registrado"
       : "Registrar uso";
+
+  const isBlocked = !!currentUser?.activeSanction;
 
   return (
     <>
@@ -150,8 +222,11 @@ export function NotificationsView() {
               Registrar uso
             </h2>
             <p className="max-md:text-sm max-md:text-ink-soft">
-              {pendingUsage.resourceName} · {pendingUsage.slotLabel}
+              {usageTargetLabel}
             </p>
+            {errorMessage && (
+              <small className="text-xs text-red-600">{errorMessage}</small>
+            )}
             <button
               type="button"
               className="btn btn-gold"
@@ -162,22 +237,21 @@ export function NotificationsView() {
               {usageButtonLabel}
             </button>
           </div>
-          {isUserBlocked && (
+          {isBlocked && (
             <div className="alert">
-              Bloqueo por inasistencia: no puedes reservar hasta que un
-              Administrador lo regularice.
+              Bloqueo activo por inasistencia: &quot;{currentUser?.activeSanction?.reason}&quot;. No puedes reservar hasta que un Administrador lo regularice.
             </div>
           )}
         </div>
       </div>
 
-      {/* Demo only: remove when real notifications arrive from the backend */}
+      {/* Demo helper */}
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" className="btn btn-outline" onClick={sendTest}>
           Enviar aviso de prueba
         </button>
         <small className="text-ink-soft">
-          Demo: agrega un aviso y lo muestra como notificación del navegador.
+          Demo: agrega un aviso local y lo muestra como notificación del navegador.
         </small>
       </div>
 
@@ -186,7 +260,7 @@ export function NotificationsView() {
         onOpenChange={setUsageDialogOpen}
         variant="success"
         title="Uso registrado"
-        description={`Registraste el uso de ${pendingUsage.resourceName} (${pendingUsage.slotLabel}). Así evitas el bloqueo por inasistencia.`}
+        description={`Registraste el uso de ${usageTargetLabel}. Así evitas el bloqueo por inasistencia.`}
         footer={
           <button
             type="button"

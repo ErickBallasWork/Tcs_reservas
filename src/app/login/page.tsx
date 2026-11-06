@@ -11,7 +11,15 @@ import {
   showSystemNotification,
 } from "@/lib/notifications";
 
-const ALLOWED_DOMAINS = ["@tcs.com", "@pichincha.com"];
+const ALLOWED_DOMAINS = ["@tcs.com", "@pichincha.com", "@demo.com"];
+
+const DEMO_USERS = [
+  { label: "Ana (Asociado)", email: "ana.asociado@demo.com" },
+  { label: "Luis (Líder)", email: "luis.lider@demo.com" },
+  { label: "Carlos (SPOC Edificio)", email: "carlos.spoc@demo.com" },
+  { label: "Sofía (SPOC Admin)", email: "sofia.spocadmin@demo.com" },
+  { label: "Admin", email: "admin@demo.com" },
+];
 
 type BlockedReason = "denied" | "dismissed" | "unsupported";
 
@@ -46,14 +54,16 @@ export default function LoginPage() {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [hasError, setHasError] = useState(false);
+  const [loginErrorMessage, setLoginErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [dialog, setDialog] = useState<{
     open: boolean;
     reason: BlockedReason;
   }>({ open: false, reason: "dismissed" });
 
-  const attemptLogin = async () => {
-    const normalized = email.trim().toLowerCase();
+  const attemptLogin = async (targetEmail?: string) => {
+    const rawEmail = targetEmail ?? email;
+    const normalized = rawEmail.trim().toLowerCase();
     const allowed = ALLOWED_DOMAINS.some(
       (d) => normalized.endsWith(d) && normalized.length > d.length,
     );
@@ -62,6 +72,7 @@ export default function LoginPage() {
       return;
     }
     setHasError(false);
+    setLoginErrorMessage(null);
 
     if (REQUIRE_NOTIFICATIONS) {
       setIsLoading(true);
@@ -81,8 +92,16 @@ export default function LoginPage() {
       );
     }
 
-    login(normalized); // TODO: replace with the real MSAL / Entra ID login
-    router.push("/");
+    try {
+      setIsLoading(true);
+      await login(normalized);
+      router.push("/");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al iniciar sesión";
+      setLoginErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -112,25 +131,56 @@ export default function LoginPage() {
           <input
             className="field"
             type="email"
-            placeholder="nombre@tcs.com"
+            placeholder="nombre@tcs.com o usuario@demo.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
         </label>
         <button type="submit" className="btn btn-gold" disabled={isLoading}>
           {isLoading && <span className="spinner" aria-hidden />}
-          {isLoading ? "Solicitando permiso…" : "Continuar con SSO"}
+          {isLoading ? "Iniciando sesión…" : "Continuar con SSO"}
         </button>
-        <div className="flex items-center gap-3">
+
+        <div className="flex flex-wrap items-center gap-2">
           <Tag>@tcs.com</Tag>
           <Tag>@pichincha.com</Tag>
+          <Tag variant="gold">@demo.com</Tag>
         </div>
-        <small
-          role={hasError ? "alert" : undefined}
-          className={hasError ? "font-semibold text-red-700" : "text-ink-soft"}
-        >
-          Otros dominios no están permitidos.
-        </small>
+
+        {/* Accesos rápidos de desarrollo con usuarios del backend */}
+        <div className="mt-2 rounded-lg border border-line bg-surface/60 p-3">
+          <p className="mb-2 text-xs font-semibold uppercase text-ink-soft">
+            Usuarios Demo (Backend):
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {DEMO_USERS.map((u) => (
+              <button
+                key={u.email}
+                type="button"
+                className="cursor-pointer rounded-md border border-line bg-white px-2 py-1 text-xs text-brand hover:border-gold hover:text-gold transition-colors"
+                onClick={() => {
+                  setEmail(u.email);
+                  void attemptLogin(u.email);
+                }}
+              >
+                {u.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {hasError && (
+          <small role="alert" className="font-semibold text-red-700">
+            Solo se permiten correos @tcs.com, @pichincha.com o @demo.com.
+          </small>
+        )}
+
+        {loginErrorMessage && (
+          <small role="alert" className="font-semibold text-red-700">
+            {loginErrorMessage}
+          </small>
+        )}
+
         {REQUIRE_NOTIFICATIONS && (
           <small className="text-ink-soft">
             Para ingresar debes permitir las notificaciones del navegador.

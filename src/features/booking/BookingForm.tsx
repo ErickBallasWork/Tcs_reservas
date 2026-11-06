@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { FIRST_SELECTABLE_DATE } from "@/lib/availability";
 import { checkBooking } from "@/lib/booking-rules";
 import { reasonLabels, resourceTypeLabels } from "@/lib/labels";
-import { resources } from "@/lib/mock-data";
-import type { ReservationReason, ResourceType } from "@/types";
+import { resources as fallbackResources } from "@/lib/mock-data";
+import type { ReservationReason, Resource, ResourceType } from "@/types";
+import type { BackendPurpose, BackendResourceType } from "@/types/api";
+import { api } from "@/lib/api";
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -19,7 +21,19 @@ const SELECTABLE_REASONS: ReservationReason[] = [
   "internal_meeting",
   "client_meeting",
 ];
-const activeResources = resources.filter((r) => r.active);
+
+const BACKEND_TYPE_TO_FRONTEND: Record<BackendResourceType, ResourceType> = {
+  MEETING_ROOM: "room",
+  AI_LAB: "ai_lab",
+  LAPTOP: "laptop",
+};
+
+const FRONTEND_REASON_TO_BACKEND: Record<ReservationReason, BackendPurpose> = {
+  training: "TRAINING",
+  internal_meeting: "INTERNAL_MEETING",
+  client_meeting: "CLIENT_MEETING",
+  client_event: "CLIENT_MEETING",
+};
 
 const RULE_TEXT = {
   overlap: "La franja se cruza con otra reserva.",
@@ -40,17 +54,22 @@ type Feedback =
       reasonLabel: string;
     };
 
-const formatDateTime = (value: string) =>
-  format(parseISO(value), "d 'de' MMMM, HH:mm", { locale: es });
+const formatDateTime = (value: string) => {
+  try {
+    return format(parseISO(value), "d 'de' MMMM, HH:mm", { locale: es });
+  } catch {
+    return value;
+  }
+};
 
 export function BookingForm() {
   const params = useSearchParams();
+  const [resourceList, setResourceList] = useState<Resource[]>(fallbackResources.filter((r) => r.active));
 
-  // En BookingForm.tsx, dentro de la inicialización del estado:
   const [initial] = useState(() => {
-    const preset = activeResources.find((r) => r.id === params.get("resource"));
+    const preset = fallbackResources.find((r) => r.id === params.get("resource"));
     const dateParam = params.get("date");
-    const hourParam = params.get("hour"); // <--- Captura la hora seleccionada
+    const hourParam = params.get("hour");
     
     const date =
       dateParam && dateParam >= FIRST_SELECTABLE_DATE
@@ -58,16 +77,13 @@ export function BookingForm() {
         : FIRST_SELECTABLE_DATE;
         
     const type: ResourceType = preset?.type ?? "room";
-    
-    // Si viene una hora específica, la usamos como inicio y sumamos 1 hora para el fin por defecto
     const startHour = hourParam ? Number(hourParam) : 10;
     const endHour = startHour + 1;
     const pad = (n: number) => String(n).padStart(2, "0");
 
     return {
       type,
-      resourceId:
-        preset?.id ?? activeResources.find((r) => r.type === type)!.id,
+      resourceId: preset?.id ?? fallbackResources.find((r) => r.type === type)?.id ?? "r-101",
       start: `${date}T${pad(startHour)}:00`,
       end: `${date}T${pad(endHour)}:00`,
     };
@@ -84,7 +100,41 @@ export function BookingForm() {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const resourceOptions = activeResources.filter((r) => r.type === type);
+  // Cargar recursos del catálogo del backend
+  useEffect(() => {
+    let isMounted = true;
+    async function loadCatalog() {
+      try {
+        const apiResources = await api.catalog.getResources();
+        if (isMounted && apiResources.length > 0) {
+          const mapped: Resource[] = apiResources.map((r) => ({
+            id: r.id,
+            name: r.name,
+            type: BACKEND_TYPE_TO_FRONTEND[r.type] || "room",
+            buildingId: r.buildingId,
+            capacity: r.capacity,
+            active: r.isActive,
+            parentLabId: r.parentResourceId || undefined,
+          }));
+          setResourceList(mapped.filter((r) => r.active));
+          // Si el resourceId actual no existe en la nueva lista, seleccionar el primero compatible
+          if (!mapped.some((r) => r.id === resourceId)) {
+            const firstOfType = mapped.find((r) => r.type === type);
+            if (firstOfType) setResourceId(firstOfType.id);
+          }
+        }
+      } catch {
+        // Mantiene fallbackResources
+      }
+    }
+    void loadCatalog();
+    return () => {
+      isMounted = false;
+    };
+  }, [resourceId, type]);
+
+  const resourceOptions = resourceList.filter((r) => r.type === type);
+
   const check = useMemo(
     () => checkBooking({ resourceId, start, end, reason, detail }),
     [resourceId, start, end, reason, detail],
@@ -102,16 +152,18 @@ export function BookingForm() {
 
   const handleTypeChange = (next: ResourceType) => {
     setType(next);
-    setResourceId(activeResources.find((r) => r.type === next)!.id);
+    const found = resourceList.find((r) => r.type === next);
+    if (found) {
+      setResourceId(found.id);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
 
     const messages: string[] = [];
     if (check.rangeInvalid) messages.push(RULE_TEXT.range);
-    if (check.overlap) messages.push(RULE_TEXT.overlap);
     if (check.anticipation) messages.push(RULE_TEXT.anticipation);
     if (check.duration) messages.push(RULE_TEXT.duration);
     if (check.missingFields) messages.push(RULE_TEXT.required);
@@ -123,9 +175,22 @@ export function BookingForm() {
     }
 
     setIsSubmitting(true);
-    // Simulated request; replace with the real API call later
-    setTimeout(() => {
-      const resource = activeResources.find((r) => r.id === resourceId);
+
+    try {
+      // Formato ISO requerido por el backend
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      const purposeBackend = FRONTEND_REASON_TO_BACKEND[reason as ReservationReason] || "INTERNAL_MEETING";
+
+      await api.reservations.create({
+        resourceId,
+        startDateTime: startDate.toISOString(),
+        endDateTime: endDate.toISOString(),
+        purpose: purposeBackend,
+        justification: detail,
+      });
+
+      const resource = resourceList.find((r) => r.id === resourceId);
       setFeedback({
         kind: "success",
         training: reason === "training",
@@ -135,11 +200,19 @@ export function BookingForm() {
         reasonLabel: reason ? reasonLabels[reason] : "",
       });
       setDialogOpen(true);
-      setIsSubmitting(false);
       setReason("");
       setDetail("");
       setSubmitted(false);
-    }, 700);
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error
+          ? err.message
+          : "Ocurrió un error al procesar tu solicitud con el servidor.";
+      setFeedback({ kind: "error", messages: [errorMsg] });
+      setDialogOpen(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -222,6 +295,7 @@ export function BookingForm() {
           <span className="hidden md:inline">Detalle / justificación</span>
           <textarea
             className="field min-h-[76px] py-2.5"
+            placeholder="Describe brevemente el motivo de la reserva"
             value={detail}
             onChange={(e) => setDetail(e.target.value)}
           />
@@ -281,7 +355,7 @@ export function BookingForm() {
           onOpenChange={setDialogOpen}
           variant="error"
           title="No se pudo solicitar la reserva"
-          description="Corrige lo siguiente e inténtalo de nuevo."
+          description="Ocurrió el siguiente inconveniente:"
           footer={
             <button
               type="button"
@@ -311,7 +385,7 @@ export function BookingForm() {
           description={
             feedback.training
               ? "Tu entrenamiento quedó pendiente de aprobación del Líder de Conocimiento. El espacio queda bloqueado mientras se decide."
-              : "Tu reserva quedó registrada. Puedes verla en Mis reservas."
+              : "Tu reserva quedó registrada exitosamente en el sistema."
           }
           footer={
             <>

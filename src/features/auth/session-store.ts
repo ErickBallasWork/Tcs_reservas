@@ -1,6 +1,12 @@
 import { ApiError, type ApiErrorCode } from '@/api/api-error';
 import type { CurrentUser, DeviceSession } from '@/api/types';
-import { postDeviceSession, postLogout, postRefresh } from '@/features/auth/api';
+import {
+  postDeviceSession,
+  postLogout,
+  postRefresh,
+  postSuperadminLogin,
+  type SuperadminCredentials,
+} from '@/features/auth/api';
 import {
   clearPendingRequest,
   clearRefreshToken,
@@ -118,6 +124,10 @@ export async function enrollDevice(pending: PendingRequest): Promise<void> {
   });
   clearPendingRequest();
   applySession(session);
+}
+
+export async function signInAsSuperadmin(credentials: SuperadminCredentials): Promise<void> {
+  applySession(await postSuperadminLogin(credentials));
 }
 
 export async function endSession(): Promise<void> {

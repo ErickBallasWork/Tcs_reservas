@@ -2,12 +2,14 @@ import { z } from 'zod';
 
 const publicConfigSchema = z.object({
   apiUrl: z.url({ protocol: /^https?$/ }).transform((url) => url.replace(/\/+$/, '')),
+  enableTestLogin: z.stringbool().default(false),
 });
 
 export type PublicConfig = z.infer<typeof publicConfigSchema>;
 
 export interface RawPublicConfig {
   apiUrl: string | undefined;
+  enableTestLogin?: string | undefined;
 }
 
 export function parsePublicConfig(raw: RawPublicConfig): PublicConfig {

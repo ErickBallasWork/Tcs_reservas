@@ -23,9 +23,10 @@ Las variables `NEXT_PUBLIC_*` se incrustan en el JavaScript **al compilar**: cam
 hacer `npm run build`. Se validan con zod en `src/lib/config.ts`: en cuanto el código importa
 `publicConfig`, la compilación falla si falta alguna o no es válida. Nunca pongas secretos aquí: todo lo que lleva `NEXT_PUBLIC_` es visible en el navegador.
 
-| Variable              | Obligatoria | Ejemplo                        | Descripción                              |
-| --------------------- | ----------- | ------------------------------ | ---------------------------------------- |
-| `NEXT_PUBLIC_API_URL` | sí          | `http://localhost:3001/api/v1` | URL base de la API, con `http` o `https` |
+| Variable                        | Obligatoria | Ejemplo                        | Descripción                                                                                     |
+| ------------------------------- | ----------- | ------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`           | sí          | `http://localhost:3001/api/v1` | URL base de la API, con `http` o `https`                                                        |
+| `NEXT_PUBLIC_ENABLE_TEST_LOGIN` | no          | `false`                        | Temporal. Con `true` habilita `/login-pruebas`, el login del SUPERADMIN con correo y contraseña |
 
 El Client ID de Google no se configura aquí: el frontend lo pide a la API en `GET /auth/config`.
 

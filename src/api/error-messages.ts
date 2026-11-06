@@ -49,6 +49,7 @@ export const errorMessages: Record<ApiErrorCode, string> = {
   FOREIGN_KEY: 'El registro está relacionado con otro que no existe o no se puede modificar.',
   HAS_FUTURE_RESERVATIONS: 'Tiene reservas futuras. Resuélvelas antes de continuar.',
   INCOMPLETE_TIMES: 'Indica la hora de inicio y la de fin juntas.',
+  INVALID_CREDENTIALS: 'Correo o contraseña incorrectos',
   INVALID_DATE: 'Las fechas no son válidas.',
   INVALID_JOB_KEY: 'Clave de proceso inválida.',
   INVALID_OPERATING_HOURS: 'El horario no es válido. Revisa las horas de apertura y cierre.',

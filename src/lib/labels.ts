@@ -114,6 +114,20 @@ export const authLabels = {
   logout: 'Cerrar sesión',
 };
 
+export const testLoginLabels = {
+  title: 'Login de pruebas',
+  intro: 'Acceso temporal del SUPERADMIN para pruebas. No usa el flujo de solicitudes.',
+  emailLabel: 'Correo',
+  passwordLabel: 'Contraseña',
+  submit: 'Entrar',
+  signingIn: 'Entrando…',
+  emailRequired: 'Escribe el correo.',
+  passwordRequired: 'Escribe la contraseña.',
+  invalidCredentials: 'Correo o contraseña incorrectos',
+  disabled: 'El login de pruebas no está habilitado',
+  tooManyAttempts: 'Demasiados intentos, espera unos minutos',
+};
+
 export const notificationPermissionLabels = {
   banner: 'Activa las notificaciones para enterarte de tus reservas, también con la app cerrada.',
   enable: 'Activar',

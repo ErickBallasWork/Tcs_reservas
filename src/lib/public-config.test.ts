@@ -5,6 +5,7 @@ describe('parsePublicConfig', () => {
   it('accepts an http api url', () => {
     expect(parsePublicConfig({ apiUrl: 'http://localhost:3001/api/v1' })).toEqual({
       apiUrl: 'http://localhost:3001/api/v1',
+      enableTestLogin: false,
     });
   });
 
@@ -24,4 +25,19 @@ describe('parsePublicConfig', () => {
       expect(() => parsePublicConfig({ apiUrl })).toThrow('apiUrl');
     },
   );
+
+  it.each([
+    ['true', true],
+    ['false', false],
+  ])('reads the test login flag "%s"', (enableTestLogin, expected) => {
+    const config = parsePublicConfig({ apiUrl: 'http://localhost:3001/api/v1', enableTestLogin });
+
+    expect(config.enableTestLogin).toBe(expected);
+  });
+
+  it('rejects an invalid test login flag', () => {
+    expect(() =>
+      parsePublicConfig({ apiUrl: 'http://localhost:3001/api/v1', enableTestLogin: 'maybe' }),
+    ).toThrow('enableTestLogin');
+  });
 });

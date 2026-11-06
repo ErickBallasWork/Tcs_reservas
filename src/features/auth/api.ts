@@ -11,6 +11,11 @@ export interface AccessRequestInput {
   deviceLabel: string;
 }
 
+export interface SuperadminCredentials {
+  email: string;
+  password: string;
+}
+
 export interface DeviceCredential {
   requestId: string;
   deviceSecret: string;
@@ -29,6 +34,10 @@ export async function fetchAccessRequestStatus(
 
 export async function postDeviceSession(body: DeviceCredential): Promise<DeviceSession> {
   return unwrap(await apiClient.POST('/auth/device-session', { body }));
+}
+
+export async function postSuperadminLogin(body: SuperadminCredentials): Promise<DeviceSession> {
+  return unwrap(await apiClient.POST('/auth/superadmin-login', { body }));
 }
 
 export async function postRefresh(refreshToken: string): Promise<DeviceSession> {

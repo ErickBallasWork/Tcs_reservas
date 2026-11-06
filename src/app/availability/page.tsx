@@ -1,5 +1,5 @@
-import { AppShell } from "@/components/layout/AppShell";
-import { AvailabilityView } from "@/features/availability/AvailabilityView";
+import { AppShell } from '@/components/layout/AppShell';
+import { AvailabilityView } from '@/features/availability/AvailabilityView';
 
 export default function AvailabilityPage() {
   return (

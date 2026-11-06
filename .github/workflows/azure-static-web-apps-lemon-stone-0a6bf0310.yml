@@ -39,13 +39,14 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LEMON_STONE_0A6BF0310 }}
           action: "upload"
           ###### Repository/Build Configurations ######
-          app_location: "/" # App source code path
-          api_location: "" # Api source code path - optional
-          output_location: "out" # CORREGIDO: sin la barra "/"
+          app_location: "/" 
+          api_location: "" 
+          output_location: "out" 
           github_id_token: ${{ steps.idtoken.outputs.result }}
           ###### End of Repository/Build Configurations ######
         env:
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          # Pon tu URL real aquí entre comillas para evitar que llegue undefined
+          NEXT_PUBLIC_API_URL: "https://reservas-backend-d5bke4fyd8gnfza7.centralus-01.azurewebsites.net/api/v1"
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'

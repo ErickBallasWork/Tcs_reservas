@@ -1,13 +1,13 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Segoe UI", Helvetica, Arial, sans-serif;  
+  --font-sans: 'Segoe UI', Helvetica, Arial, sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -46,26 +46,34 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --color-brand: #0B3D91;
+  --color-brand: #0b3d91;
   --color-brand-dark: #072a66;
-  --color-gold: #FFC72C;
-  --color-gold-soft: #FFF1BF;
+  --color-gold: #ffc72c;
+  --color-gold-soft: #fff1bf;
   --color-gold-ink: #5c4300;
-  --color-surface: #F4F7FC;
-  --color-line: #D5DEEE;
-  --color-soft: #E8F0FC;
+  --color-surface: #f4f7fc;
+  --color-line: #d5deee;
+  --color-soft: #e8f0fc;
   --color-ink: #10224a;
   --color-ink-soft: #4a5a7a;
+  --color-plan-canvas: var(--plan-canvas);
+  --color-plan-grid: var(--plan-grid);
+  --color-plan-zone: var(--plan-zone);
+  --color-plan-zone-ink: var(--plan-zone-ink);
+  --color-plan-free: var(--plan-free);
+  --color-plan-free-soft: var(--plan-free-soft);
+  --color-plan-occupied: var(--plan-occupied);
+  --color-plan-occupied-soft: var(--plan-occupied-soft);
+  --color-plan-mine: var(--plan-mine);
+  --color-plan-mine-ink: var(--plan-mine-ink);
+  --color-plan-muted: var(--plan-muted);
+  --color-plan-muted-ink: var(--plan-muted-ink);
+  --color-plan-selected: var(--plan-selected);
 }
 
 @layer components {
   .btn {
-    @apply inline-flex min-h-11 cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-brand px-4 font-semibold text-white shadow-sm transition duration-150 ease-out
-      hover:-translate-y-px hover:bg-brand-dark hover:shadow-md
-      active:translate-y-0 active:scale-[0.98] active:shadow-sm
-      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand
-      disabled:pointer-events-none disabled:opacity-60
-      motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100;
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg bg-brand px-4 font-semibold whitespace-nowrap text-white shadow-sm transition duration-150 ease-out select-none hover:-translate-y-px hover:bg-brand-dark hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand active:translate-y-0 active:scale-[0.98] active:shadow-sm disabled:pointer-events-none disabled:opacity-60 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100;
   }
   .btn-gold {
     @apply bg-gold text-brand-dark hover:bg-[#F2B705];
@@ -77,7 +85,7 @@
     @apply inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent;
   }
   .field {
-    @apply min-h-11 w-full rounded-lg border border-[#8fa3c9] bg-white px-3 transition hover:border-brand/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25 disabled:opacity-60;
+    @apply min-h-11 w-full rounded-lg border border-[#8fa3c9] bg-white px-3 transition hover:border-brand/60 focus:border-brand focus:ring-2 focus:ring-brand/25 focus:outline-none disabled:opacity-60;
   }
   .field-label {
     @apply flex flex-col gap-1.5 text-[13px] font-semibold;
@@ -123,6 +131,19 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --plan-canvas: #f4f7fc;
+  --plan-grid: #d5deee;
+  --plan-zone: #ffffff;
+  --plan-zone-ink: #10224a;
+  --plan-free: #0b3d91;
+  --plan-free-soft: #e8f0fc;
+  --plan-occupied: #5c4300;
+  --plan-occupied-soft: #fff1bf;
+  --plan-mine: #0b3d91;
+  --plan-mine-ink: #ffffff;
+  --plan-muted: #e6eaf2;
+  --plan-muted-ink: #4a5a7a;
+  --plan-selected: #ffc72c;
 }
 
 .dark {
@@ -157,6 +178,19 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --plan-canvas: #0e1626;
+  --plan-grid: #26324a;
+  --plan-zone: #172238;
+  --plan-zone-ink: #e8eefb;
+  --plan-free: #8fb4ff;
+  --plan-free-soft: #1c2d4f;
+  --plan-occupied: #ffc72c;
+  --plan-occupied-soft: #3a2f12;
+  --plan-mine: #8fb4ff;
+  --plan-mine-ink: #0e1626;
+  --plan-muted: #1d2638;
+  --plan-muted-ink: #93a0b8;
+  --plan-selected: #ffc72c;
 }
 
 @layer base {

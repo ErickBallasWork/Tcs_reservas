@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Info } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -8,15 +8,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
-export type FeedbackVariant = "success" | "error" | "info";
+export type FeedbackVariant = 'success' | 'error' | 'info';
 
 const variants = {
-  success: { Icon: CheckCircle2, badge: "bg-brand text-white" },
-  error: { Icon: AlertTriangle, badge: "bg-gold text-brand-dark" },
-  info: { Icon: Info, badge: "bg-soft text-brand" },
+  success: { Icon: CheckCircle2, badge: 'bg-brand text-white' },
+  error: { Icon: AlertTriangle, badge: 'bg-gold text-brand-dark' },
+  info: { Icon: Info, badge: 'bg-soft text-brand' },
 };
 
 interface FeedbackDialogProps {
@@ -32,7 +32,7 @@ interface FeedbackDialogProps {
 export function FeedbackDialog({
   open,
   onOpenChange,
-  variant = "info",
+  variant = 'info',
   title,
   description,
   children,
@@ -43,21 +43,12 @@ export function FeedbackDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="gap-4 rounded-[14px] p-6 sm:max-w-[540px]">
-        <div
-          className={cn(
-            "flex size-12 items-center justify-center rounded-full",
-            badge,
-          )}
-        >
+        <div className={cn('flex size-12 items-center justify-center rounded-full', badge)}>
           <Icon className="size-6" aria-hidden />
         </div>
         <DialogHeader className="gap-1.5 text-left">
-          <DialogTitle className="text-lg font-bold text-brand">
-            {title}
-          </DialogTitle>
-          <DialogDescription className="text-ink-soft">
-            {description}
-          </DialogDescription>
+          <DialogTitle className="text-lg font-bold text-brand">{title}</DialogTitle>
+          <DialogDescription className="text-ink-soft">{description}</DialogDescription>
         </DialogHeader>
         {children}
         <DialogFooter className="gap-2 sm:justify-end">{footer}</DialogFooter>

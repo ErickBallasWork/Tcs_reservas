@@ -1,23 +1,22 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-export type PermissionState = NotificationPermission | "unsupported";
+export type PermissionState = NotificationPermission | 'unsupported';
 
-// Set to false to make browser notifications optional
 export const REQUIRE_NOTIFICATIONS = true;
 
 export function getPermissionState(): PermissionState {
-  if (typeof window === "undefined" || !("Notification" in window)) {
-    return "unsupported";
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    return 'unsupported';
   }
   return Notification.permission;
 }
 
-// Must be called from a user gesture (click / submit)
+// Browsers only allow this call from a user gesture.
 export async function requestPermission(): Promise<PermissionState> {
-  if (typeof window === "undefined" || !("Notification" in window)) {
-    return "unsupported";
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    return 'unsupported';
   }
   try {
     const result = await Notification.requestPermission();
@@ -27,10 +26,10 @@ export async function requestPermission(): Promise<PermissionState> {
   }
 }
 
-async function getRegistration() {
-  if (!("serviceWorker" in navigator)) return null;
+export async function getServiceWorkerRegistration() {
+  if (!('serviceWorker' in navigator)) return null;
   try {
-    await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.register('/sw.js');
     return await navigator.serviceWorker.ready;
   } catch {
     return null;
@@ -38,10 +37,10 @@ async function getRegistration() {
 }
 
 export async function showSystemNotification(title: string, body: string) {
-  if (getPermissionState() !== "granted") return false;
+  if (getPermissionState() !== 'granted') return false;
   const options: NotificationOptions = { body };
   try {
-    const registration = await getRegistration();
+    const registration = await getServiceWorkerRegistration();
     if (registration) {
       await registration.showNotification(title, options);
     } else {
@@ -53,7 +52,6 @@ export async function showSystemNotification(title: string, body: string) {
   }
 }
 
-// Current permission, kept in sync if the user changes it in the browser
 export function useNotificationPermission() {
   const [state, setState] = useState<PermissionState | null>(null);
 
@@ -63,21 +61,21 @@ export function useNotificationPermission() {
 
     let status: PermissionStatus | null = null;
     navigator.permissions
-      ?.query({ name: "notifications" })
+      ?.query({ name: 'notifications' })
       .then((s) => {
         status = s;
         s.onchange = update;
       })
       .catch(() => {});
 
-    window.addEventListener("focus", update);
-    document.addEventListener("visibilitychange", update);
+    window.addEventListener('focus', update);
+    document.addEventListener('visibilitychange', update);
     return () => {
       if (status) status.onchange = null;
-      window.removeEventListener("focus", update);
-      document.removeEventListener("visibilitychange", update);
+      window.removeEventListener('focus', update);
+      document.removeEventListener('visibilitychange', update);
     };
   }, []);
 
-  return state; // null until it has been read on the client
+  return state;
 }

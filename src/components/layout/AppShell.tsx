@@ -1,19 +1,21 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/auth";
-import { roleLabels } from "@/lib/labels";
-import { homeByRole, navByRole } from "@/lib/nav";
-import {
-  REQUIRE_NOTIFICATIONS,
-  useNotificationPermission,
-} from "@/lib/notifications";
-import { cn } from "@/lib/utils";
-import type { Role } from "@/types";
+import { LogOut } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { PermissionPrompt } from '@/features/notifications/PermissionPrompt';
+import { UnreadBadge } from '@/features/notifications/UnreadBadge';
+import { unregisterPush, usePushRegistration } from '@/features/notifications/usePushRegistration';
+import { useUnreadCount } from '@/features/notifications/useNotifications';
+import { SanctionBanner } from '@/features/sanctions/SanctionBanner';
+import { useAuth } from '@/lib/auth';
+import { authLabels, roleLabels } from '@/lib/labels';
+import { canOpen, homeForRoles, navForRoles } from '@/lib/nav';
+import { cn } from '@/lib/utils';
 
 const MOBILE_SLOTS = 4;
+const NOTIFICATIONS_HREF = '/notifications';
 
 interface AppShellProps {
   title: string;
@@ -22,166 +24,165 @@ interface AppShellProps {
 }
 
 export function AppShell({ title, mobileTitle, children }: AppShellProps) {
-  const { role, setRole, ready, session, logout } = useAuth();
-  const permission = useNotificationPermission();
+  const { status, user, roles, logout, retry } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [moreOpen, setMoreOpen] = useState(false);
+  const unread = useUnreadCount();
+  usePushRegistration();
 
-  // Access guard: needs a session and, when required, notification permission
+  const allowed = status === 'authenticated' && canOpen(roles, pathname);
+
   useEffect(() => {
-    if (!ready || permission === null) return;
-    if (!session) {
-      router.replace("/login");
-    } else if (REQUIRE_NOTIFICATIONS && permission !== "granted") {
-      logout();
-      router.replace("/login");
-    }
-  }, [ready, permission, session, router, logout]);
+    if (status === 'anonymous') router.replace('/login');
+    else if (status === 'authenticated' && !allowed) router.replace(homeForRoles(roles));
+  }, [status, allowed, roles, router]);
 
-  const hasAccess =
-    ready &&
-    permission !== null &&
-    !!session &&
-    (!REQUIRE_NOTIFICATIONS || permission === "granted");
+  if (status === 'unavailable') {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3.5 p-6 text-center">
+        <h1 className="text-[22px] font-bold text-brand">{authLabels.unavailableTitle}</h1>
+        <p role="alert">{authLabels.unavailableText}</p>
+        <button type="button" className="btn btn-gold" onClick={() => void retry()}>
+          {authLabels.retry}
+        </button>
+      </div>
+    );
+  }
 
-  if (!hasAccess) return null;
+  if (!allowed || !user) return null;
 
-  const items = navByRole[role];
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(href + "/");
+  const items = navForRoles(roles);
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
-  // Mobile: with more than 4 items, show 3 + a "Más" button
   const overflow = items.length > MOBILE_SLOTS;
   const mobilePrimary = overflow ? items.slice(0, MOBILE_SLOTS - 1) : items;
   const mobileMore = overflow ? items.slice(MOBILE_SLOTS - 1) : [];
+  const notificationsInOverflow = mobileMore.some((item) => item.href === NOTIFICATIONS_HREF);
+  const roleSummary = roles.map((role) => roleLabels[role]).join(' · ');
 
-  const handleRoleChange = (next: Role) => {
-    setRole(next);
-    setMoreOpen(false);
-    router.push(homeByRole[next]);
+  const handleLogout = async () => {
+    await unregisterPush();
+    void logout();
+    router.replace('/login');
   };
-
-  const handleLogout = () => {
-    logout();
-    router.replace("/login");
-  };
-
-  // Temporary selector to test every role without a real login
-  const roleSelect = (
-    <select
-      aria-label="Cambiar rol (demo)"
-      value={role}
-      onChange={(e) => handleRoleChange(e.target.value as Role)}
-      className="min-h-11 w-full cursor-pointer rounded-lg border border-white/30 bg-white/10 px-3 text-sm text-white transition-colors hover:bg-white/20 [&>option]:text-ink"
-    >
-      {(Object.keys(roleLabels) as Role[]).map((r) => (
-        <option key={r} value={r}>
-          {roleLabels[r]}
-        </option>
-      ))}
-    </select>
-  );
 
   return (
     <div className="flex min-h-screen bg-surface text-ink">
-      {/* Desktop sidebar */}
       <aside className="hidden w-[236px] shrink-0 flex-col gap-1.5 bg-brand px-3.5 py-5 text-white md:flex">
-        <div className="px-3 pb-3.5 pt-1 text-xl font-extrabold">
+        <div className="px-3 pt-1 pb-3.5 text-xl font-extrabold">
           TCS <b className="text-gold">Reservas</b>
         </div>
-        <small className="px-3 pb-2 text-[11px] uppercase opacity-80">
-          {roleLabels[role]}
-        </small>
+        <div className="px-3 pb-2">
+          <p className="truncate text-sm font-semibold">{user.fullName}</p>
+          <small className="block text-[11px] uppercase opacity-80">{roleSummary}</small>
+        </div>
         {items.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              "flex min-h-11 items-center rounded-lg px-3 transition-colors hover:bg-white/10",
-              isActive(item.href) &&
-                "bg-gold font-bold text-brand-dark hover:bg-gold",
+              'flex min-h-11 items-center rounded-lg px-3 transition-colors hover:bg-white/10',
+              isActive(item.href) && 'bg-gold font-bold text-brand-dark hover:bg-gold',
             )}
           >
-            {item.label}
+            <span className="flex-1">{item.label}</span>
+            {item.href === NOTIFICATIONS_HREF && <UnreadBadge count={unread} />}
           </Link>
         ))}
         <div className="mt-auto flex flex-col gap-1.5 pt-4">
-          <small className="block px-1 text-[11px] uppercase opacity-60">
-            Rol (demo)
-          </small>
-          {roleSelect}
           <button
             type="button"
-            onClick={handleLogout}
+            onClick={() => void handleLogout()}
             className="flex min-h-11 cursor-pointer items-center rounded-lg px-3 text-left text-sm transition-colors hover:bg-white/10"
           >
-            Cerrar sesión
+            {authLabels.logout}
           </button>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Mobile header */}
         <header className="flex items-center justify-between gap-3 bg-brand p-5 text-lg font-bold text-white md:hidden">
-          <span>{mobileTitle ?? title}</span>
-          <div className="w-36 text-sm font-normal">{roleSelect}</div>
+          <span className="truncate">{mobileTitle ?? title}</span>
+          <button
+            type="button"
+            onClick={() => void handleLogout()}
+            aria-label={authLabels.logout}
+            className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-white/10"
+          >
+            <LogOut className="size-5" aria-hidden />
+          </button>
         </header>
 
         <main className="flex flex-1 flex-col gap-4 p-4 pb-24 md:px-[30px] md:py-[22px] md:pb-[22px]">
-          {/* Desktop title + role tag */}
           <div className="hidden items-center justify-between gap-3 md:flex">
             <h1 className="text-[22px] font-bold text-brand">{title}</h1>
             <span className="rounded-full bg-brand px-2.5 py-[3px] text-xs font-bold text-white">
-              {roleLabels[role]}
+              {user.fullName}
             </span>
           </div>
+          <SanctionBanner />
+          <PermissionPrompt />
           {children}
         </main>
       </div>
 
-      {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 flex border-t border-line bg-white md:hidden">
+      <nav
+        aria-label="Navegación principal"
+        className="fixed inset-x-0 bottom-0 flex border-t border-line bg-white md:hidden"
+      >
         {mobilePrimary.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             onClick={() => setMoreOpen(false)}
             className={cn(
-              "flex min-h-14 flex-1 items-center justify-center text-xs font-semibold text-brand transition-colors active:bg-soft",
-              isActive(item.href) && "bg-gold text-brand-dark active:bg-gold",
+              'relative flex min-h-14 flex-1 items-center justify-center text-xs font-semibold text-brand transition-colors active:bg-soft',
+              isActive(item.href) && 'bg-gold text-brand-dark active:bg-gold',
             )}
           >
             {item.shortLabel}
+            {item.href === NOTIFICATIONS_HREF && (
+              <UnreadBadge
+                count={unread}
+                className="absolute top-1.5 right-[calc(50%-28px)] bg-brand text-white"
+              />
+            )}
           </Link>
         ))}
         {overflow && (
           <>
             <button
               type="button"
-              onClick={() => setMoreOpen((o) => !o)}
+              onClick={() => setMoreOpen((open) => !open)}
               className={cn(
-                "flex min-h-14 flex-1 cursor-pointer items-center justify-center text-xs font-semibold text-brand transition-colors active:bg-soft",
-                (moreOpen || mobileMore.some((i) => isActive(i.href))) &&
-                  "bg-gold text-brand-dark active:bg-gold",
+                'relative flex min-h-14 flex-1 cursor-pointer items-center justify-center text-xs font-semibold text-brand transition-colors active:bg-soft',
+                (moreOpen || mobileMore.some((item) => isActive(item.href))) &&
+                  'bg-gold text-brand-dark active:bg-gold',
               )}
             >
               Más
+              {notificationsInOverflow && (
+                <UnreadBadge
+                  count={unread}
+                  className="absolute top-1.5 right-[calc(50%-28px)] bg-brand text-white"
+                />
+              )}
             </button>
             {moreOpen && (
-              <div className="absolute bottom-full right-2 mb-2 w-56 overflow-hidden rounded-lg border border-line bg-white shadow-lg">
+              <div className="absolute right-2 bottom-full mb-2 w-56 overflow-hidden rounded-lg border border-line bg-white shadow-lg">
                 {mobileMore.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setMoreOpen(false)}
                     className={cn(
-                      "flex min-h-11 items-center px-4 text-sm font-semibold text-brand transition-colors hover:bg-soft",
-                      isActive(item.href) &&
-                        "bg-gold text-brand-dark hover:bg-gold",
+                      'flex min-h-11 items-center px-4 text-sm font-semibold text-brand transition-colors hover:bg-soft',
+                      isActive(item.href) && 'bg-gold text-brand-dark hover:bg-gold',
                     )}
                   >
-                    {item.label}
+                    <span className="flex-1">{item.label}</span>
+                    {item.href === NOTIFICATIONS_HREF && <UnreadBadge count={unread} />}
                   </Link>
                 ))}
               </div>

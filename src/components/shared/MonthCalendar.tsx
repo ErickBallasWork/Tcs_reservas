@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { addDays, format, parseISO, startOfWeek } from "date-fns";
-import { cn } from "@/lib/utils";
+import { addDays, format, parseISO, startOfWeek } from 'date-fns';
+import { cn } from '@/lib/utils';
 
-const WEEKDAYS = ["L", "M", "M", "J", "V", "S", "D"];
-const pad = (n: number) => String(n).padStart(2, "0");
+const WEEKDAYS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+const pad = (n: number) => String(n).padStart(2, '0');
 
 interface DayButtonProps {
   label: number;
@@ -14,25 +14,19 @@ interface DayButtonProps {
   onClick: () => void;
 }
 
-function DayButton({
-  label,
-  isSelected,
-  isMarked,
-  disabled,
-  onClick,
-}: DayButtonProps) {
+function DayButton({ label, isSelected, isMarked, disabled, onClick }: DayButtonProps) {
   return (
     <button
       type="button"
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "min-h-11 rounded-lg font-semibold text-ink transition-colors",
-        !disabled && "cursor-pointer hover:bg-soft",
-        disabled && "cursor-not-allowed text-[#5a6b8f]/60",
-        isMarked && "bg-gold-soft text-gold-ink",
-        isMarked && !disabled && "hover:bg-[#FFE79A]",
-        isSelected && "bg-brand text-white hover:bg-brand-dark",
+        'min-h-11 rounded-lg font-semibold text-ink transition-colors',
+        !disabled && 'cursor-pointer hover:bg-soft',
+        disabled && 'cursor-not-allowed text-[#5a6b8f]/60',
+        isMarked && 'bg-gold-soft text-gold-ink',
+        isMarked && !disabled && 'hover:bg-[#FFE79A]',
+        isSelected && 'bg-brand text-white hover:bg-brand-dark',
       )}
     >
       {label}
@@ -53,7 +47,7 @@ function WeekdayHeader() {
 }
 
 interface CalendarCommonProps {
-  selected: string; // YYYY-MM-DD
+  selected: string;
   markedDates: Set<string>;
   firstSelectableDate: string;
   onSelect: (date: string) => void;
@@ -61,7 +55,7 @@ interface CalendarCommonProps {
 
 interface MonthCalendarProps extends CalendarCommonProps {
   year: number;
-  month: number; // 0-based
+  month: number;
 }
 
 export function MonthCalendar({
@@ -73,7 +67,8 @@ export function MonthCalendar({
   onSelect,
 }: MonthCalendarProps) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const offset = (new Date(year, month, 1).getDay() + 6) % 7; // week starts on Monday
+  // Shifted so the week starts on Monday.
+  const offset = (new Date(year, month, 1).getDay() + 6) % 7;
 
   return (
     <div className="grid grid-cols-7 gap-1 text-center">
@@ -106,9 +101,7 @@ export function WeekStrip({
   onSelect,
 }: CalendarCommonProps) {
   const monday = startOfWeek(parseISO(selected), { weekStartsOn: 1 });
-  const days = Array.from({ length: 7 }, (_, i) =>
-    format(addDays(monday, i), "yyyy-MM-dd"),
-  );
+  const days = Array.from({ length: 7 }, (_, i) => format(addDays(monday, i), 'yyyy-MM-dd'));
 
   return (
     <div className="grid grid-cols-7 gap-1 text-center">

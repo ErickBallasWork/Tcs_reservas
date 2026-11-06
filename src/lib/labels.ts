@@ -1,5 +1,10 @@
 import type { ReservationReason, ReservationStatus, ResourceType, Role } from '@/types';
 
+export const appLabels = {
+  title: 'Reservas TCS · Banco Pichincha',
+  description: 'Reserva de salas de reuniones, laboratorios y laptops de IA',
+};
+
 export const statusLabels: Record<ReservationStatus, string> = {
   confirmed: 'Confirmada',
   pending: 'Pendiente',

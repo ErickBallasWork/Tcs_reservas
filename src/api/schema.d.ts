@@ -731,7 +731,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Registrar que usé el espacio (HU-20) */
+        /**
+         * Registrar que usé el espacio (HU-20)
+         * @description Desde 15 min antes hasta 15 min después del inicio. Solo el dueño de una reserva CONFIRMED.
+         */
         post: operations["ReservationsController_checkIn"];
         delete?: never;
         options?: never;
@@ -1524,9 +1527,64 @@ export interface components {
             /** @description Active laptops of an AI lab */
             laptops: components["schemas"]["LaptopAvailabilityDto"][];
         };
+        /** @enum {string} */
+        SanctionType: "NO_SHOW";
+        /** @enum {string} */
+        SanctionStatus: "ACTIVE" | "RESOLVED";
+        ReservationOwnerDto: {
+            /** Format: uuid */
+            id: string;
+            fullName: string;
+            email: string;
+        };
+        SanctionResolverDto: {
+            /** Format: uuid */
+            id: string;
+            fullName: string;
+        };
+        SanctionReservationDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            startDateTime: string;
+            /** Format: date-time */
+            endDateTime: string;
+            /** @description Name of the reserved resource */
+            resourceName: string;
+        };
+        SanctionResponseDto: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["SanctionType"];
+            status: components["schemas"]["SanctionStatus"];
+            reason: string;
+            /** Format: date-time */
+            startDate: string;
+            /** Format: date-time */
+            endDate: string | null;
+            /** Format: date-time */
+            resolvedAt: string | null;
+            /** @description Reason given by the administrator on resolving */
+            resolutionComment: string | null;
+            user: components["schemas"]["ReservationOwnerDto"];
+            resolvedBy: components["schemas"]["SanctionResolverDto"] | null;
+            reservation: components["schemas"]["SanctionReservationDto"];
+        };
+        SanctionPageResponseDto: {
+            total: number;
+            page: number;
+            pageSize: number;
+            items: components["schemas"]["SanctionResponseDto"][];
+        };
         ResolveSanctionDto: {
-            /** @description Optional comment from the administrator */
-            comment?: string;
+            /** @description Reason the administrator regularizes the sanction */
+            comment: string;
+        };
+        ProcessNoShowsResponseDto: {
+            /** @description Reservations marked as no-show in this run */
+            noShows: number;
+            /** @description Pending trainings rejected because they started undecided */
+            expiredTrainings: number;
         };
         CreateReservationDto: {
             /**
@@ -1576,12 +1634,6 @@ export interface components {
             type: components["schemas"]["ResourceType"];
             building: components["schemas"]["NamedReferenceDto"];
             parent: components["schemas"]["NamedReferenceDto"] | null;
-        };
-        ReservationOwnerDto: {
-            /** Format: uuid */
-            id: string;
-            fullName: string;
-            email: string;
         };
         /** @enum {string} */
         CheckInMethod: "BUTTON" | "QR";
@@ -1701,14 +1753,6 @@ export interface components {
              * @example 6
              */
             attendees?: number;
-        };
-        CheckInDto: {
-            /**
-             * @description Button in the app or QR code in the room
-             * @default BUTTON
-             * @enum {string}
-             */
-            method: "BUTTON" | "QR";
         };
         RecurrenceDto: {
             /**
@@ -4200,7 +4244,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SanctionPageResponseDto"];
+                };
             };
         };
     };
@@ -4223,7 +4269,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SanctionResponseDto"];
+                };
             };
         };
     };
@@ -4242,7 +4290,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ProcessNoShowsResponseDto"];
+                };
             };
         };
     };
@@ -4374,11 +4424,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CheckInDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             201: {
                 headers: {

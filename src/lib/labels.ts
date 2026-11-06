@@ -43,6 +43,35 @@ export const sanctionBannerLabels = {
   blockedHint: 'Reservas bloqueadas por una sanción activa.',
 };
 
+export const sanctionsLabels = {
+  title: 'Sanciones por inasistencia',
+  tabs: { ACTIVE: 'Activas', RESOLVED: 'Regularizadas' },
+  empty: {
+    ACTIVE: 'No hay sanciones activas.',
+    RESOLVED: 'Todavía no hay sanciones regularizadas.',
+  },
+  loading: 'Cargando sanciones…',
+  retry: 'Reintentar',
+  previous: 'Anterior',
+  next: 'Siguiente',
+  page: (page: number, total: number) => `Página ${page} de ${total}`,
+  activeCount: (count: number) => (count === 1 ? '1 activa' : `${count} activas`),
+  statusResolved: 'Regularizada',
+  resolve: (count: number) => (count === 1 ? 'Regularizar' : `Regularizar las ${count}`),
+  resolveTitle: 'Regularizar sanción',
+  resolveIntro: (count: number) =>
+    count === 1
+      ? 'La persona podrá volver a reservar.'
+      : `Se regularizan sus ${count} sanciones activas y la persona podrá volver a reservar.`,
+  resolveReason: 'Motivo de la regularización',
+  confirmResolve: (count: number) => (count === 1 ? 'Regularizar' : `Regularizar las ${count}`),
+  saving: 'Guardando…',
+  cancel: 'Cancelar',
+  resolvedBy: (name: string, date: string) => `Regularizada por ${name} el ${date}`,
+  resolutionComment: (comment: string) => `Motivo: ${comment}`,
+  unknownAdmin: 'un administrador',
+};
+
 export const authLabels = {
   brandTagline: 'Salas de reuniones y Laboratorio de IA',
   checkingDevice: 'Verificando este dispositivo…',

@@ -444,3 +444,34 @@ export const bookingLabels = {
   close: 'Cerrar',
   summary: { resource: 'Recurso', start: 'Inicio', end: 'Fin', purpose: 'Motivo' },
 };
+
+export const myReservationsLabels = {
+  tabs: { upcoming: 'Próximas', past: 'Pasadas' },
+  empty: { upcoming: 'No tienes reservas próximas.', past: 'Todavía no tienes reservas pasadas.' },
+  loading: 'Cargando tus reservas…',
+  retry: 'Reintentar',
+  pendingTraining: 'Entrenamiento pendiente de aprobación del Líder. El espacio queda bloqueado.',
+  pagination: 'Paginación',
+  previous: 'Anterior',
+  next: 'Siguiente',
+  page: (page: number, total: number) => `Página ${page} de ${total}`,
+  edit: 'Editar',
+  cancel: 'Cancelar',
+  tooLate: 'Faltan menos de 24 horas: ya no se puede cancelar. Aún puedes editar el detalle.',
+  seriesBadge: (index: number, total: number) => `Serie · ${index} de ${total}`,
+  attendees: (count: number) => `${count} ${count === 1 ? 'persona' : 'personas'}`,
+  cancelTitle: 'Cancelar reserva',
+  cancelConfirm: 'Cancelar reserva',
+  cancelOnlyThis: 'Cancelar solo esta',
+  cancelSeries: 'Cancelar toda la serie',
+  cancelSeriesHint: (total: number) =>
+    `Esta reserva es parte de una serie de ${total}. Cancelar la serie cancela las reservas que faltan; las que empiezan en menos de 24 horas se conservan.`,
+  cancelling: 'Cancelando…',
+  keep: 'Conservar',
+  close: 'Cerrar',
+  seriesCancelled: 'Serie cancelada',
+  seriesCancelledSummary: (cancelled: number, kept: number) =>
+    kept > 0
+      ? `Se cancelaron ${cancelled} reservas. ${kept} se conservan porque empiezan en menos de 24 horas.`
+      : `Se cancelaron ${cancelled} reservas.`,
+};

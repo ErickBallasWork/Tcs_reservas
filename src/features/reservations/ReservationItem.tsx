@@ -1,0 +1,90 @@
+'use client';
+
+import type { Reservation } from '@/api/types';
+import { Tag } from '@/components/shared/Tag';
+import { formatRange } from '@/lib/booking-time';
+import {
+  myReservationsLabels as labels,
+  purposeLabels,
+  reservationStatusLabels,
+} from '@/lib/labels';
+import {
+  canCancelReservation,
+  canEditReservation,
+  seriesPosition,
+} from '@/lib/reservation-actions';
+
+interface ReservationItemProps {
+  reservation: Reservation;
+  onEdit: (reservation: Reservation) => void;
+  onCancel: (reservation: Reservation) => void;
+}
+
+function StatusTag({ status }: { status: Reservation['status'] }) {
+  const variant =
+    status === 'CONFIRMED' || status === 'CHECKED_IN'
+      ? 'default'
+      : status === 'PENDING_APPROVAL'
+        ? 'gold'
+        : 'dark';
+  return <Tag variant={variant}>{reservationStatusLabels[status]}</Tag>;
+}
+
+export function ReservationItem({ reservation, onEdit, onCancel }: ReservationItemProps) {
+  const position = seriesPosition(reservation);
+  const editable = canEditReservation(reservation);
+  const cancellable = canCancelReservation(reservation);
+  const open = reservation.status === 'CONFIRMED' || reservation.status === 'PENDING_APPROVAL';
+
+  return (
+    <li className="panel flex flex-col gap-3 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="flex flex-col gap-0.5">
+          <b className="text-brand">{reservation.resource.name}</b>
+          <small className="text-ink-soft">
+            {reservation.resource.parent?.name ?? reservation.resource.building.name}
+          </small>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {position && (
+            <Tag variant="gold">{labels.seriesBadge(position.index, position.total)}</Tag>
+          )}
+          <StatusTag status={reservation.status} />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-0.5 text-sm">
+        <span>{formatRange(reservation.startDateTime, reservation.endDateTime)}</span>
+        <span className="font-medium text-brand">
+          {purposeLabels[reservation.purpose]}
+          {reservation.attendees !== null && ` · ${labels.attendees(reservation.attendees)}`}
+        </span>
+        <span className="text-ink-soft">{reservation.justification}</span>
+      </div>
+
+      {open && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="btn btn-outline flex-1"
+            disabled={!editable}
+            onClick={() => onEdit(reservation)}
+          >
+            {labels.edit}
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline flex-1"
+            disabled={!cancellable}
+            onClick={() => onCancel(reservation)}
+          >
+            {labels.cancel}
+          </button>
+          {!cancellable && editable && (
+            <small className="w-full text-ink-soft">{labels.tooLate}</small>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}

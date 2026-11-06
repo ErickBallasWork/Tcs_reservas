@@ -27,7 +27,32 @@ hacer `npm run build`. Se validan con zod en `src/lib/config.ts`: en cuanto el c
 | --------------------- | ----------- | ------------------------------ | ---------------------------------------- |
 | `NEXT_PUBLIC_API_URL` | sí          | `http://localhost:3001/api/v1` | URL base de la API, con `http` o `https` |
 
-El Client ID de Google no se configura aquí: el frontend lo pide a la API en `GET /auth/config`.
+### Cómo usa la app esta variable
+
+- `NEXT_PUBLIC_API_URL` es la dirección de la API. Todas las pantallas que muestran o guardan datos (disponibilidad, reservas, avisos, administración) llaman a esa dirección con un cliente HTTP único (`src/api/`).
+- Termina en `/api/v1`: por ejemplo, `http://localhost:3001/api/v1` en local y `https://<tu-api>.azurewebsites.net/api/v1` en producción.
+- Como el sitio es estático, la dirección queda escrita en el JavaScript durante `npm run build`. Si cambia la URL de la API, hay que volver a compilar y desplegar el frontend: no basta con cambiar un ajuste en Azure.
+- La API debe tener el origen del frontend en su `CORS_ORIGINS`. Si falta, el navegador bloquea todas las llamadas y la app muestra errores de red aunque la API funcione.
+- El frontend no necesita más variables: la clave pública del push se la pide a la API cuando la persona activa las notificaciones, y el acceso funciona por solicitud y dispositivo, sin proveedores externos.
+
+### Producción: Azure Static Web Apps y GitHub
+
+1. En GitHub, en este repo: Settings → Secrets and variables → Actions.
+   - **Variable** `NEXT_PUBLIC_API_URL`: la URL de la API terminada en `/api/v1`, por ejemplo `https://<tu-api>.azurewebsites.net/api/v1`.
+   - **Secret** `AZURE_STATIC_WEB_APPS_API_TOKEN_...`: el token del recurso de Static Web Apps. Normalmente ya existe, porque lo crea Azure al conectar el repo.
+2. En el workflow de Static Web Apps (solo existe en `main`), el paso `Build And Deploy` debe pasar la variable al build:
+
+   ```yaml
+   env:
+     NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+   ```
+
+   Sin esto el build de producción falla, porque la configuración exige la URL. El CI de `develop` ya la lee de la variable y, si no existe, usa `http://localhost:3001/api/v1`.
+
+3. En el backend, añade la URL de este sitio (con `https://` y sin barra final) a la App Setting `CORS_ORIGINS` de `reservas-backend`.
+4. Haz el merge a `main`. Después de desplegar, abre el sitio y comprueba que `/login` y `/request-access` cargan y que no hay errores de CORS en la consola del navegador.
+
+La guía del backend (variables de Azure y secretos) está en el README de `Backend_Reservas`, en "Producción: Azure y GitHub".
 
 ## Comandos
 
@@ -65,4 +90,4 @@ src/
   formato, typecheck, tests y build.
 - Despliegue: el workflow de Azure Static Web Apps publica `out/` en cada push a `main`. Configura en
   GitHub la protección de `main` para exigir que el check **CI** pase antes de mergear.
-- En el workflow de despliegue hay que definir `NEXT_PUBLIC_API_URL` con la URL de la API de Azure.
+- La variable `NEXT_PUBLIC_API_URL` del despliegue se explica en "Producción: Azure Static Web Apps y GitHub".

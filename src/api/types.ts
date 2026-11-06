@@ -70,3 +70,9 @@ export type ReplaceOperatingHoursBody = Schemas['ReplaceOperatingHoursDto'];
 export type ClosedDate = Schemas['ClosedDateResponseDto'];
 export type CreateClosedDateBody = Schemas['CreateClosedDateDto'];
 export type DashboardMetrics = Schemas['DashboardMetricsResponseDto'];
+
+export type NotificationType = Schemas['NotificationType'];
+export type Notification = Schemas['NotificationResponseDto'];
+export type NotificationPage = Schemas['NotificationPageResponseDto'];
+export type PushConfig = Schemas['PushConfigResponseDto'];
+export type RegisterPushBody = Schemas['RegisterPushSubscriptionDto'];

@@ -28,7 +28,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Mi bandeja de avisos (la app la consulta cada 30 s) */
+        /** Mi bandeja de avisos */
         get: operations["NotificationsController_listMine"];
         put?: never;
         post?: never;
@@ -45,11 +45,46 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Número de avisos sin leer (para la campana) */
+        /** Número de avisos sin leer (para el contador) */
         get: operations["NotificationsController_unreadCount"];
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/push-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Clave pública para suscribir este navegador a los avisos push */
+        get: operations["NotificationsController_pushConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/push-subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Registrar este navegador para recibir avisos con la app cerrada */
+        put: operations["NotificationsController_registerPush"];
+        post?: never;
+        /** Dejar de recibir avisos push en este navegador */
+        delete: operations["NotificationsController_removePush"];
         options?: never;
         head?: never;
         patch?: never;
@@ -89,7 +124,7 @@ export interface paths {
         patch: operations["NotificationsController_markRead"];
         trace?: never;
     };
-    "/api/v1/notifications/pending/run": {
+    "/api/v1/notifications/jobs/run": {
         parameters: {
             query?: never;
             header?: never;
@@ -98,8 +133,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Tarea programada: enviar los avisos pendientes por push o e-mail */
-        post: operations["NotificationsController_runPending"];
+        /** Tarea programada: crear los recordatorios que ya corresponden */
+        post: operations["NotificationsController_runJobs"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1028,6 +1063,83 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @enum {string} */
+        NotificationType: "ACCESS_REQUEST" | "APPROVAL_REALLOCATED" | "APPROVAL_REQUESTED" | "NO_SHOW_NO_SANCTION" | "NO_SHOW_SANCTION" | "RESERVATION_APPROVED" | "RESERVATION_CONFIRMED" | "RESERVATION_PENDING" | "RESERVATION_REALLOCATED" | "RESERVATION_REJECTED" | "RESERVATION_REMINDER" | "RESERVATION_UPDATED" | "SANCTION_RESOLVED" | "TRAINING_EXPIRED";
+        NotificationResponseDto: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["NotificationType"];
+            title: string;
+            message: string;
+            isRead: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: uuid
+             * @description Reservation the notice is about
+             */
+            reservationId: string | null;
+            /**
+             * Format: date-time
+             * @description Start of the related event
+             */
+            eventAt: string | null;
+            /**
+             * Format: date-time
+             * @description The notice stops being shown after this moment
+             */
+            expiresAt: string | null;
+        };
+        NotificationPageResponseDto: {
+            total: number;
+            /** @description Unread notifications, regardless of the filter */
+            unread: number;
+            page: number;
+            pageSize: number;
+            items: components["schemas"]["NotificationResponseDto"][];
+        };
+        UnreadCountResponseDto: {
+            unread: number;
+        };
+        PushConfigResponseDto: {
+            /** @description false when the server has no VAPID keys */
+            enabled: boolean;
+            /** @description Public key the browser needs to subscribe */
+            publicKey: string | null;
+        };
+        PushKeysDto: {
+            p256dh: string;
+            auth: string;
+        };
+        RegisterPushSubscriptionDto: {
+            /**
+             * Format: uri
+             * @description Push service URL returned by the browser
+             */
+            endpoint: string;
+            keys: components["schemas"]["PushKeysDto"];
+        };
+        PushSubscriptionResponseDto: {
+            /** Format: uuid */
+            id: string;
+        };
+        RemovePushSubscriptionDto: {
+            endpoint: string;
+        };
+        RemovePushSubscriptionResponseDto: {
+            removed: number;
+        };
+        MarkAllReadResponseDto: {
+            updated: number;
+        };
+        RunNotificationJobsResponseDto: {
+            /** @description Reminders created in this run */
+            reminded: number;
+            /** @description Push notices delivered in this run */
+            pushSent: number;
+            /** @description Push notices that ran out of attempts in this run */
+            pushFailed: number;
+        };
         /** @enum {string} */
         ErrorCode: "ACCESS_REQUEST_COOLDOWN" | "ACCESS_REQUEST_NOT_APPROVED" | "ACCESS_REQUEST_NOT_FOUND" | "ACCESS_REQUEST_PENDING" | "ACCESS_REQUEST_REDEEMED" | "ALREADY_RESOLVED" | "ALREADY_STARTED" | "ATTENDEES_EXCEEDS_CAPACITY" | "ATTENDEES_REQUIRED" | "BAD_REQUEST" | "BUILDING_INACTIVE" | "BUILDING_NAME_TAKEN" | "BUILDING_NOT_ALLOWED" | "BUILDING_NOT_FOUND" | "BUILDING_REQUIRED" | "CANCEL_TOO_LATE" | "CLOSED_DATE_NOT_FOUND" | "CANNOT_APPROVE_OWN" | "CANNOT_MANAGE_SELF" | "CAPACITY_REQUIRED" | "COMMENTS_REQUIRED" | "CONCURRENT_CONFLICT" | "CONFLICT" | "DATABASE_UNAVAILABLE" | "DEVICE_NOT_AUTHORIZED" | "DEVICE_NOT_FOUND" | "DOMAIN_NOT_ALLOWED" | "DUPLICATE" | "EDIT_TOO_LATE" | "END_BEFORE_START" | "ERROR" | "FORBIDDEN" | "FORBIDDEN_ROLE" | "FORBIDDEN_ROLE_ASSIGNMENT" | "FOREIGN_KEY" | "HAS_FUTURE_RESERVATIONS" | "INCOMPLETE_TIMES" | "INVALID_DATE" | "INVALID_OPERATING_HOURS" | "INVALID_JOB_KEY" | "INVALID_RANGE" | "INVALID_TOKEN" | "LAB_REQUIRED" | "LAST_SUPERADMIN" | "MAX_DURATION" | "MIN_ADVANCE" | "NO_TOKEN" | "NOT_A_MANAGER" | "NOT_ALIGNED" | "NOT_CANCELLABLE" | "NOT_CHECKABLE" | "NOT_EDITABLE" | "NOT_FOUND" | "NOT_OWNER" | "NOT_PENDING" | "NOT_REALLOCATABLE" | "NOT_YOUR_APPROVAL" | "NOT_YOUR_BUILDING" | "OUTSIDE_OPERATING_HOURS" | "NOTHING_TO_CHANGE" | "NOTIFICATION_NOT_FOUND" | "ONLY_ROOMS" | "OUTSIDE_CHECKIN_WINDOW" | "PARENT_INACTIVE" | "PARENT_NOT_ALLOWED" | "RANGE_TOO_LONG" | "RESERVATION_NOT_FOUND" | "RESOURCE_INACTIVE" | "RESOURCE_NAME_TAKEN" | "RESOURCE_NOT_FOUND" | "ROLE_NOT_FOUND" | "SANCTION_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "SERIES_EMPTY" | "SERIES_LIMIT_REQUIRED" | "SERIES_NOT_FOUND" | "SERIES_START_NOT_IN_WEEKDAYS" | "SERIES_TOO_LONG" | "SLOT_TAKEN" | "START_IN_PAST" | "TOO_MANY_REQUESTS" | "UNAUTHORIZED" | "UNKNOWN_USER" | "UNPROCESSABLE" | "USER_INACTIVE" | "USER_NOT_FOUND" | "USER_SANCTIONED" | "WRONG_RESOURCE_TYPE";
         ApiErrorResponseDto: {
@@ -2071,7 +2183,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["NotificationPageResponseDto"];
+                };
             };
         };
     };
@@ -2088,7 +2202,76 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UnreadCountResponseDto"];
+                };
+            };
+        };
+    };
+    NotificationsController_pushConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushConfigResponseDto"];
+                };
+            };
+        };
+    };
+    NotificationsController_registerPush: {
+        parameters: {
+            query?: never;
+            header: {
+                "user-agent": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterPushSubscriptionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushSubscriptionResponseDto"];
+                };
+            };
+        };
+    };
+    NotificationsController_removePush: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemovePushSubscriptionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RemovePushSubscriptionResponseDto"];
+                };
             };
         };
     };
@@ -2105,7 +2288,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MarkAllReadResponseDto"];
+                };
             };
         };
     };
@@ -2124,11 +2309,13 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["NotificationResponseDto"];
+                };
             };
         };
     };
-    NotificationsController_runPending: {
+    NotificationsController_runJobs: {
         parameters: {
             query?: never;
             header?: {
@@ -2143,7 +2330,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["RunNotificationJobsResponseDto"];
+                };
             };
         };
     };

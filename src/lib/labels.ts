@@ -4,32 +4,11 @@ import type {
   ResourceType as ApiResourceType,
   Role,
 } from '@/api/types';
-import type { ReservationReason, ReservationStatus, ResourceType } from '@/types';
 import type { BookingProblem } from '@/lib/booking-checks';
 
 export const appLabels = {
   title: 'Reservas TCS · Banco Pichincha',
   description: 'Reserva de salas de reuniones, laboratorios y laptops de IA',
-};
-
-export const statusLabels: Record<ReservationStatus, string> = {
-  confirmed: 'Confirmada',
-  pending: 'Pendiente',
-  rejected: 'Rechazada',
-  cancelled: 'Cancelada',
-};
-
-export const reasonLabels: Record<ReservationReason, string> = {
-  internal_meeting: 'Reunión interna',
-  client_meeting: 'Reunión con cliente',
-  training: 'Entrenamiento',
-  client_event: 'Evento con cliente',
-};
-
-export const resourceTypeLabels: Record<ResourceType, string> = {
-  room: 'Sala',
-  ai_lab: 'Laboratorio IA',
-  laptop: 'Laptop',
 };
 
 export const catalogResourceTypeLabels: Record<ApiResourceType, string> = {

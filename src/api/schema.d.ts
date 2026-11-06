@@ -820,10 +820,33 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Entrenamientos pendientes de aprobación (HU-15) */
+        /**
+         * Entrenamientos pendientes que me corresponde decidir (RF-08)
+         * @description Un Líder ve los de sus asociados a cargo. ADMIN y SUPERADMIN ven los de quienes no tienen Líder asignado. Nadie ve los propios.
+         */
         get: operations["ApprovalsController_listPending"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/approvals/series/{seriesId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Aprobar o rechazar las ocurrencias pendientes de una serie (RF-08, RF-15)
+         * @description Decide solo las ocurrencias futuras que siguen pendientes. Rechazar exige comentario.
+         */
+        post: operations["ApprovalsController_decideSeries"];
         delete?: never;
         options?: never;
         head?: never;
@@ -839,7 +862,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Aprobar o rechazar un entrenamiento (HU-15) */
+        /**
+         * Aprobar o rechazar un entrenamiento (RF-08)
+         * @description Rechazar exige comentario y libera la franja. Nadie decide su propia solicitud (CANNOT_APPROVE_OWN).
+         */
         post: operations["ApprovalsController_decide"];
         delete?: never;
         options?: never;
@@ -971,7 +997,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {string} */
-        ErrorCode: "ACCESS_REQUEST_COOLDOWN" | "ACCESS_REQUEST_NOT_APPROVED" | "ACCESS_REQUEST_NOT_FOUND" | "ACCESS_REQUEST_PENDING" | "ACCESS_REQUEST_REDEEMED" | "ALREADY_RESOLVED" | "ALREADY_STARTED" | "ATTENDEES_EXCEEDS_CAPACITY" | "ATTENDEES_REQUIRED" | "BAD_REQUEST" | "BUILDING_INACTIVE" | "BUILDING_NAME_TAKEN" | "BUILDING_NOT_ALLOWED" | "BUILDING_NOT_FOUND" | "BUILDING_REQUIRED" | "CANCEL_TOO_LATE" | "CLOSED_DATE_NOT_FOUND" | "CANNOT_MANAGE_SELF" | "CAPACITY_REQUIRED" | "COMMENTS_REQUIRED" | "CONCURRENT_CONFLICT" | "CONFLICT" | "DATABASE_UNAVAILABLE" | "DEVICE_NOT_AUTHORIZED" | "DEVICE_NOT_FOUND" | "DOMAIN_NOT_ALLOWED" | "DUPLICATE" | "EDIT_TOO_LATE" | "END_BEFORE_START" | "ERROR" | "FORBIDDEN" | "FORBIDDEN_ROLE" | "FORBIDDEN_ROLE_ASSIGNMENT" | "FOREIGN_KEY" | "HAS_FUTURE_RESERVATIONS" | "INCOMPLETE_TIMES" | "INVALID_DATE" | "INVALID_OPERATING_HOURS" | "INVALID_JOB_KEY" | "INVALID_RANGE" | "INVALID_TOKEN" | "LAB_REQUIRED" | "LAST_SUPERADMIN" | "MAX_DURATION" | "MIN_ADVANCE" | "NO_TOKEN" | "NOT_A_MANAGER" | "NOT_ALIGNED" | "NOT_CANCELLABLE" | "NOT_CHECKABLE" | "NOT_EDITABLE" | "NOT_FOUND" | "NOT_OWNER" | "NOT_PENDING" | "NOT_REALLOCATABLE" | "NOT_YOUR_BUILDING" | "OUTSIDE_OPERATING_HOURS" | "NOTHING_TO_CHANGE" | "NOTIFICATION_NOT_FOUND" | "ONLY_ROOMS" | "OUTSIDE_CHECKIN_WINDOW" | "PARENT_INACTIVE" | "PARENT_NOT_ALLOWED" | "RANGE_TOO_LONG" | "RESERVATION_NOT_FOUND" | "RESOURCE_INACTIVE" | "RESOURCE_NAME_TAKEN" | "RESOURCE_NOT_FOUND" | "ROLE_NOT_FOUND" | "SANCTION_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "SERIES_EMPTY" | "SERIES_LIMIT_REQUIRED" | "SERIES_NOT_FOUND" | "SERIES_START_NOT_IN_WEEKDAYS" | "SERIES_TOO_LONG" | "SLOT_TAKEN" | "START_IN_PAST" | "TOO_MANY_REQUESTS" | "UNAUTHORIZED" | "UNKNOWN_USER" | "UNPROCESSABLE" | "USER_INACTIVE" | "USER_NOT_FOUND" | "USER_SANCTIONED" | "WRONG_RESOURCE_TYPE";
+        ErrorCode: "ACCESS_REQUEST_COOLDOWN" | "ACCESS_REQUEST_NOT_APPROVED" | "ACCESS_REQUEST_NOT_FOUND" | "ACCESS_REQUEST_PENDING" | "ACCESS_REQUEST_REDEEMED" | "ALREADY_RESOLVED" | "ALREADY_STARTED" | "ATTENDEES_EXCEEDS_CAPACITY" | "ATTENDEES_REQUIRED" | "BAD_REQUEST" | "BUILDING_INACTIVE" | "BUILDING_NAME_TAKEN" | "BUILDING_NOT_ALLOWED" | "BUILDING_NOT_FOUND" | "BUILDING_REQUIRED" | "CANCEL_TOO_LATE" | "CLOSED_DATE_NOT_FOUND" | "CANNOT_APPROVE_OWN" | "CANNOT_MANAGE_SELF" | "CAPACITY_REQUIRED" | "COMMENTS_REQUIRED" | "CONCURRENT_CONFLICT" | "CONFLICT" | "DATABASE_UNAVAILABLE" | "DEVICE_NOT_AUTHORIZED" | "DEVICE_NOT_FOUND" | "DOMAIN_NOT_ALLOWED" | "DUPLICATE" | "EDIT_TOO_LATE" | "END_BEFORE_START" | "ERROR" | "FORBIDDEN" | "FORBIDDEN_ROLE" | "FORBIDDEN_ROLE_ASSIGNMENT" | "FOREIGN_KEY" | "HAS_FUTURE_RESERVATIONS" | "INCOMPLETE_TIMES" | "INVALID_DATE" | "INVALID_OPERATING_HOURS" | "INVALID_JOB_KEY" | "INVALID_RANGE" | "INVALID_TOKEN" | "LAB_REQUIRED" | "LAST_SUPERADMIN" | "MAX_DURATION" | "MIN_ADVANCE" | "NO_TOKEN" | "NOT_A_MANAGER" | "NOT_ALIGNED" | "NOT_CANCELLABLE" | "NOT_CHECKABLE" | "NOT_EDITABLE" | "NOT_FOUND" | "NOT_OWNER" | "NOT_PENDING" | "NOT_REALLOCATABLE" | "NOT_YOUR_APPROVAL" | "NOT_YOUR_BUILDING" | "OUTSIDE_OPERATING_HOURS" | "NOTHING_TO_CHANGE" | "NOTIFICATION_NOT_FOUND" | "ONLY_ROOMS" | "OUTSIDE_CHECKIN_WINDOW" | "PARENT_INACTIVE" | "PARENT_NOT_ALLOWED" | "RANGE_TOO_LONG" | "RESERVATION_NOT_FOUND" | "RESOURCE_INACTIVE" | "RESOURCE_NAME_TAKEN" | "RESOURCE_NOT_FOUND" | "ROLE_NOT_FOUND" | "SANCTION_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "SERIES_EMPTY" | "SERIES_LIMIT_REQUIRED" | "SERIES_NOT_FOUND" | "SERIES_START_NOT_IN_WEEKDAYS" | "SERIES_TOO_LONG" | "SLOT_TAKEN" | "START_IN_PAST" | "TOO_MANY_REQUESTS" | "UNAUTHORIZED" | "UNKNOWN_USER" | "UNPROCESSABLE" | "USER_INACTIVE" | "USER_NOT_FOUND" | "USER_SANCTIONED" | "WRONG_RESOURCE_TYPE";
         ApiErrorResponseDto: {
             /** @example 404 */
             statusCode: number;
@@ -1610,7 +1636,7 @@ export interface components {
             approvals: components["schemas"]["ReservationApprovalDto"][];
             reallocations: components["schemas"]["ReservationReallocationDto"][];
         };
-        ReservationResponseDto: {
+        ReservationWithApprovalsDto: {
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -1636,12 +1662,13 @@ export interface components {
             resource: components["schemas"]["ReservationResourceDto"];
             user: components["schemas"]["ReservationOwnerDto"];
             checkIn: components["schemas"]["CheckInResponseDto"] | null;
+            approvals: components["schemas"]["ReservationApprovalDto"][];
         };
         ReservationPageResponseDto: {
             total: number;
             page: number;
             pageSize: number;
-            items: components["schemas"]["ReservationResponseDto"][];
+            items: components["schemas"]["ReservationWithApprovalsDto"][];
         };
         UpdateReservationDto: {
             /**
@@ -1761,6 +1788,33 @@ export interface components {
             /** Format: date-time */
             cancelledAt: string | null;
         };
+        ReservationResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            /** Format: uuid */
+            resourceId: string;
+            reservationType: components["schemas"]["ReservationType"];
+            purpose: components["schemas"]["ReservationPurpose"];
+            justification: string;
+            attendees: number | null;
+            /** @description Position inside its series */
+            occurrenceIndex: number | null;
+            series: components["schemas"]["ReservationSeriesRefDto"] | null;
+            /** Format: date-time */
+            startDateTime: string;
+            /** Format: date-time */
+            endDateTime: string;
+            status: components["schemas"]["ReservationStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            resource: components["schemas"]["ReservationResourceDto"];
+            user: components["schemas"]["ReservationOwnerDto"];
+            checkIn: components["schemas"]["CheckInResponseDto"] | null;
+        };
         SkippedOccurrenceDto: {
             startDateTime: string;
             endDateTime: string;
@@ -1784,11 +1838,20 @@ export interface components {
             /** @description Reservations kept because they start in less than 24 h */
             kept: number;
         };
+        /** @enum {string} */
+        ApprovalDecision: "APPROVE" | "REJECT";
         DecideApprovalDto: {
-            /** @enum {string} */
-            decision: "APPROVE" | "REJECT";
-            /** @description Required when rejecting */
+            decision: components["schemas"]["ApprovalDecision"];
+            /** @description Required when the decision is REJECT */
             comments?: string;
+        };
+        SeriesDecisionResponseDto: {
+            /** Format: uuid */
+            seriesId: string;
+            /** @description Occurrences that received the decision */
+            decided: number;
+            /** @description Occurrences left out because someone else decided them first */
+            skipped: number;
         };
         ReallocateReservationDto: {
             /**
@@ -4333,7 +4396,32 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ReservationResponseDto"][];
+                };
+            };
+        };
+    };
+    ApprovalsController_decideSeries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                seriesId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecideApprovalDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeriesDecisionResponseDto"];
                 };
             };
         };
@@ -4353,12 +4441,12 @@ export interface operations {
             };
         };
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ReservationDetailResponseDto"];
                 };
             };
         };

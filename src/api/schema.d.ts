@@ -873,6 +873,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/spoc/agenda": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Agenda de las salas de un edificio del SPOC (RF-10)
+         * @description Reservas de salas confirmadas, pendientes o con uso registrado en el rango (máximo 8 días), más los edificios que administra con sus salas activas para elegir un destino.
+         */
+        get: operations["ReallocationsController_getAgenda"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reservations/{id}/reallocate": {
         parameters: {
             query?: never;
@@ -882,7 +902,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Mover una reserva de sala por evento con cliente (HU-17, HU-18) */
+        /**
+         * Mover una reserva de sala por evento con cliente (RF-10, RF-11)
+         * @description Cambia la sala, el horario o ambos dentro de los edificios del SPOC. Aplica las reglas de traslape, horario operativo y capacidad, pero no la anticipación mínima. Avisa al asociado con el antes, el después y la justificación.
+         */
         post: operations["ReallocationsController_reallocate"];
         delete?: never;
         options?: never;
@@ -1612,6 +1635,8 @@ export interface components {
             justification: string;
             /** Format: date-time */
             reallocationDate: string;
+            previousResource: components["schemas"]["ReservationResourceDto"];
+            newResource: components["schemas"]["ReservationResourceDto"];
         };
         ReservationDetailResponseDto: {
             /** Format: uuid */
@@ -1642,39 +1667,11 @@ export interface components {
             approvals: components["schemas"]["ReservationApprovalDto"][];
             reallocations: components["schemas"]["ReservationReallocationDto"][];
         };
-        ReservationWithApprovalsDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            userId: string;
-            /** Format: uuid */
-            resourceId: string;
-            reservationType: components["schemas"]["ReservationType"];
-            purpose: components["schemas"]["ReservationPurpose"];
-            justification: string;
-            attendees: number | null;
-            /** @description Position inside its series */
-            occurrenceIndex: number | null;
-            series: components["schemas"]["ReservationSeriesRefDto"] | null;
-            /** Format: date-time */
-            startDateTime: string;
-            /** Format: date-time */
-            endDateTime: string;
-            status: components["schemas"]["ReservationStatus"];
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            resource: components["schemas"]["ReservationResourceDto"];
-            user: components["schemas"]["ReservationOwnerDto"];
-            checkIn: components["schemas"]["CheckInResponseDto"] | null;
-            approvals: components["schemas"]["ReservationApprovalDto"][];
-        };
-        ReservationPageResponseDto: {
+        MyReservationPageResponseDto: {
             total: number;
             page: number;
             pageSize: number;
-            items: components["schemas"]["ReservationWithApprovalsDto"][];
+            items: components["schemas"]["ReservationDetailResponseDto"][];
         };
         UpdateReservationDto: {
             /**
@@ -1859,6 +1856,51 @@ export interface components {
             /** @description Occurrences left out because someone else decided them first */
             skipped: number;
         };
+        AgendaRoomDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            capacity: number;
+        };
+        AgendaBuildingDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @description Active meeting rooms */
+            rooms: components["schemas"]["AgendaRoomDto"][];
+        };
+        AgendaOwnerDto: {
+            fullName: string;
+        };
+        AgendaReservationDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            resourceId: string;
+            /** Format: date-time */
+            startDateTime: string;
+            /** Format: date-time */
+            endDateTime: string;
+            status: components["schemas"]["ReservationStatus"];
+            purpose: components["schemas"]["ReservationPurpose"];
+            justification: string;
+            attendees: number | null;
+            /** Format: uuid */
+            seriesId: string | null;
+            /** @description True when a SPOC already moved this reservation */
+            reallocated: boolean;
+            owner: components["schemas"]["AgendaOwnerDto"];
+        };
+        SpocAgendaResponseDto: {
+            /**
+             * Format: uuid
+             * @description Building whose reservations are listed
+             */
+            buildingId: string;
+            /** @description Buildings the user manages, with their rooms */
+            buildings: components["schemas"]["AgendaBuildingDto"][];
+            reservations: components["schemas"]["AgendaReservationDto"][];
+        };
         ReallocateReservationDto: {
             /**
              * Format: uuid
@@ -1880,6 +1922,40 @@ export interface components {
              * @example Visita de cliente en la Sala Pichincha
              */
             justification: string;
+        };
+        ReservationWithApprovalsDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            /** Format: uuid */
+            resourceId: string;
+            reservationType: components["schemas"]["ReservationType"];
+            purpose: components["schemas"]["ReservationPurpose"];
+            justification: string;
+            attendees: number | null;
+            /** @description Position inside its series */
+            occurrenceIndex: number | null;
+            series: components["schemas"]["ReservationSeriesRefDto"] | null;
+            /** Format: date-time */
+            startDateTime: string;
+            /** Format: date-time */
+            endDateTime: string;
+            status: components["schemas"]["ReservationStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            resource: components["schemas"]["ReservationResourceDto"];
+            user: components["schemas"]["ReservationOwnerDto"];
+            checkIn: components["schemas"]["CheckInResponseDto"] | null;
+            approvals: components["schemas"]["ReservationApprovalDto"][];
+        };
+        ReservationPageResponseDto: {
+            total: number;
+            page: number;
+            pageSize: number;
+            items: components["schemas"]["ReservationWithApprovalsDto"][];
         };
         DashboardMetricsResponseDto: {
             total: number;
@@ -4217,7 +4293,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReservationPageResponseDto"];
+                    "application/json": components["schemas"]["MyReservationPageResponseDto"];
                 };
             };
         };
@@ -4471,6 +4547,86 @@ export interface operations {
             };
         };
     };
+    ReallocationsController_getAgenda: {
+        parameters: {
+            query: {
+                /** @description Building to show. The first one assigned is used when omitted */
+                buildingId?: string;
+                /** @description Range start (ISO 8601) */
+                from: string;
+                /** @description Range end (ISO 8601), exclusive */
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpocAgendaResponseDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
     ReallocationsController_reallocate: {
         parameters: {
             query?: never;
@@ -4491,7 +4647,61 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ReservationDetailResponseDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
                 };
             };
         };

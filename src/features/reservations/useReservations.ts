@@ -4,6 +4,7 @@ import { availabilityKeys } from '@/features/availability/useAvailability';
 import {
   cancelReservation,
   cancelSeries,
+  checkInReservation,
   createReservation,
   createSeries,
   fetchMyReservations,
@@ -54,6 +55,11 @@ export function useUpdateReservation() {
 export function useCancelReservation() {
   const refresh = useRefreshReservations();
   return useMutation({ mutationFn: (id: string) => cancelReservation(id), onSuccess: refresh });
+}
+
+export function useCheckIn() {
+  const refresh = useRefreshReservations();
+  return useMutation({ mutationFn: (id: string) => checkInReservation(id), onSuccess: refresh });
 }
 
 export function usePreviewSeries() {

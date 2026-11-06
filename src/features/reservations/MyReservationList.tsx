@@ -8,10 +8,13 @@ import { CancelReservationDialog } from '@/features/reservations/CancelReservati
 import { ReservationItem } from '@/features/reservations/ReservationItem';
 import { useMyReservations } from '@/features/reservations/useReservations';
 import { toLocal } from '@/lib/booking-time';
+import { upcomingBoundary } from '@/lib/check-in';
 import { myReservationsLabels as labels } from '@/lib/labels';
+import { useNow } from '@/lib/useNow';
 import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = 10;
+const CLOCK_TICK_MS = 30_000;
 
 type Scope = 'upcoming' | 'past';
 
@@ -20,15 +23,16 @@ export function MyReservationsList() {
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<Reservation | null>(null);
   const [cancelling, setCancelling] = useState<Reservation | null>(null);
-  const [now] = useState(() => new Date().toISOString());
+  const now = useNow(CLOCK_TICK_MS);
+  const [boundary] = useState(() => upcomingBoundary().toISOString());
 
   const filter = useMemo(
     () => ({
       page,
       pageSize: PAGE_SIZE,
-      ...(scope === 'upcoming' ? { from: now } : { to: now }),
+      ...(scope === 'upcoming' ? { from: boundary } : { to: boundary }),
     }),
-    [page, scope, now],
+    [page, scope, boundary],
   );
   const reservations = useMyReservations(filter);
 
@@ -97,6 +101,7 @@ export function MyReservationsList() {
             <ReservationItem
               key={item.id}
               reservation={item}
+              now={now}
               onEdit={setEditing}
               onCancel={setCancelling}
             />

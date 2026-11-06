@@ -2,6 +2,7 @@
 
 import type { ReservationDetail, ReservationWithApprovals } from '@/api/types';
 import { Tag } from '@/components/shared/Tag';
+import { CheckInButton } from '@/features/reservations/CheckInButton';
 import { approvalOutcome, type ApprovalOutcome } from '@/lib/approval-outcome';
 import { formatRange } from '@/lib/booking-time';
 import {
@@ -19,6 +20,7 @@ import {
 
 interface ReservationItemProps {
   reservation: ReservationDetail;
+  now: Date;
   onEdit: (reservation: ReservationWithApprovals) => void;
   onCancel: (reservation: ReservationWithApprovals) => void;
 }
@@ -68,7 +70,7 @@ function ApprovalNote({ outcome }: { outcome: ApprovalOutcome }) {
   );
 }
 
-export function ReservationItem({ reservation, onEdit, onCancel }: ReservationItemProps) {
+export function ReservationItem({ reservation, now, onEdit, onCancel }: ReservationItemProps) {
   const position = seriesPosition(reservation);
   const outcome = approvalOutcome(reservation);
   const editable = canEditReservation(reservation);
@@ -104,6 +106,8 @@ export function ReservationItem({ reservation, onEdit, onCancel }: ReservationIt
         {outcome && <ApprovalNote outcome={outcome} />}
         {reallocated && <ReallocationNote reservation={reservation} />}
       </div>
+
+      <CheckInButton reservation={reservation} now={now} />
 
       {open && (
         <div className="flex flex-wrap gap-2">

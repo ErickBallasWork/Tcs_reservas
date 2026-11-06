@@ -41,6 +41,10 @@ export async function cancelReservation(id: string): Promise<ReservationDetail> 
   return unwrap(await apiClient.PATCH('/reservations/{id}/cancel', { params: { path: { id } } }));
 }
 
+export async function checkInReservation(id: string): Promise<ReservationDetail> {
+  return unwrap(await apiClient.POST('/reservations/{id}/check-in', { params: { path: { id } } }));
+}
+
 export async function previewSeries(body: CreateSeriesBody): Promise<SeriesPreview> {
   return unwrap(await apiClient.POST('/reservation-series/preview', { body }));
 }

@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { CreateReservationBody, CreateSeriesBody, UpdateReservationBody } from '@/api/types';
 import { availabilityKeys } from '@/features/availability/useAvailability';
+import { floorPlanKeys } from '@/features/floor-plans/useFloorPlans';
 import {
   cancelReservation,
   cancelSeries,
@@ -24,6 +25,7 @@ function useRefreshReservations() {
     Promise.all([
       queryClient.invalidateQueries({ queryKey: reservationKeys.all }),
       queryClient.invalidateQueries({ queryKey: availabilityKeys.all }),
+      queryClient.invalidateQueries({ queryKey: floorPlanKeys.statuses }),
     ]);
 }
 

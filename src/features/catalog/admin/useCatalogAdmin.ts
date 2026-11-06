@@ -15,6 +15,7 @@ import {
   patchResource,
 } from '@/features/catalog/admin/api';
 import type { CatalogSubject } from '@/features/catalog/admin/catalog-subject';
+import { floorPlanKeys } from '@/features/floor-plans/useFloorPlans';
 
 export const adminCatalogKeys = {
   tree: ['catalog', 'tree', 'admin'] as const,
@@ -24,7 +25,11 @@ export const adminCatalogKeys = {
 
 function useRefreshCatalog() {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: ['catalog'] });
+  return () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['catalog'] }),
+      queryClient.invalidateQueries({ queryKey: floorPlanKeys.all }),
+    ]);
 }
 
 export function useAdminCatalogTree() {

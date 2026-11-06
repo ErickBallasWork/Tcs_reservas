@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Reservation } from '@/api/types';
 import {
+  applyBookingPatch,
   initialValues,
   isSlotChange,
   toCreateBody,
@@ -154,5 +155,32 @@ describe('valuesFromReservation', () => {
 
   it('leaves attendees empty when the reservation has none', () => {
     expect(valuesFromReservation({ ...original, attendees: null }).attendees).toBe('');
+  });
+});
+
+describe('applyBookingPatch', () => {
+  it('moves the end date with the start date of a same-day reservation', () => {
+    const next = applyBookingPatch(values(), { startDate: '2026-11-13' });
+
+    expect(next).toMatchObject({ startDate: '2026-11-13', endDate: '2026-11-13' });
+    expect(next.repeat.weekdays).toEqual([5]);
+  });
+
+  it('keeps a later end date of a multi-day reservation', () => {
+    const next = applyBookingPatch(values({ endDate: '2026-11-14' }), { startDate: '2026-11-13' });
+
+    expect(next.endDate).toBe('2026-11-14');
+  });
+
+  it('pulls the end date forward when the start passes it', () => {
+    const next = applyBookingPatch(values({ endDate: '2026-11-13' }), { startDate: '2026-11-15' });
+
+    expect(next.endDate).toBe('2026-11-15');
+  });
+
+  it('merges any other field untouched', () => {
+    const next = applyBookingPatch(values(), { resourceId: 'room-2', startTime: '12:00' });
+
+    expect(next).toMatchObject({ resourceId: 'room-2', startTime: '12:00', endDate: '2026-11-12' });
   });
 });

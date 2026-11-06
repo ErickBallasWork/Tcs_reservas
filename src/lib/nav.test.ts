@@ -84,6 +84,18 @@ describe('navForRoles', () => {
     },
   );
 
+  it.each([['ADMIN'], ['SUPERADMIN']] as const)('lets %s edit the floor plans', (role) => {
+    expect(hrefs([role])).toContain('/admin/floor-plans');
+    expect(canOpen([role], '/admin/floor-plans')).toBe(true);
+  });
+
+  it.each([['ASOCIADO'], ['LIDER'], ['SPOC_ADMIN'], ['SPOC_EDIFICIO']] as const)(
+    'keeps the floor plan editor away from %s',
+    (role) => {
+      expect(canOpen([role], '/admin/floor-plans')).toBe(false);
+    },
+  );
+
   it('keeps the catalog administration away from associates', () => {
     expect(hrefs(['ASOCIADO', 'LIDER'])).not.toContain('/admin/buildings');
     expect(canOpen(['ASOCIADO'], '/admin/catalog')).toBe(false);

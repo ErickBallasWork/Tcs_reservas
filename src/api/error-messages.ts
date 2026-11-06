@@ -34,6 +34,14 @@ export const errorMessages: Record<ApiErrorCode, string> = {
     'Solo puedes cambiar la franja o el recurso con al menos 24 horas de anticipación sobre la reserva original.',
   END_BEFORE_START: 'La hora de fin debe ser posterior a la de inicio.',
   ERROR: 'Ocurrió un error inesperado.',
+  FLOOR_PLAN_ALREADY_EXISTS: 'Este edificio ya tiene un plano.',
+  FLOOR_PLAN_NOT_FOUND: 'El plano no existe.',
+  FLOOR_PLAN_RANGE_INVALID: 'Elige una franja válida de máximo 48 horas.',
+  FLOOR_ZONE_NOT_FOUND: 'Una de las zonas ya no existe. Recarga el plano.',
+  FLOOR_ZONE_OUT_OF_BOUNDS: 'Una zona se sale del plano. Ajusta su posición o tamaño.',
+  FLOOR_ZONE_RESOURCE_INVALID:
+    'El recurso no corresponde al tipo de zona o no es de este edificio.',
+  FLOOR_ZONE_RESOURCE_TAKEN: 'Ese recurso ya está ligado a otra zona.',
   FORBIDDEN: 'No tienes permiso para realizar esta acción.',
   FORBIDDEN_ROLE: 'Tu rol no tiene permiso para realizar esta acción.',
   FORBIDDEN_ROLE_ASSIGNMENT:

@@ -1,11 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { Reservation } from '@/api/types';
 import { BookingFeedbackDialogs } from '@/features/booking/BookingFeedbackDialogs';
 import { BookingFields } from '@/features/booking/BookingFields';
 import { RepeatFields } from '@/features/booking/RepeatFields';
 import { SeriesPreviewList } from '@/features/booking/SeriesPreviewList';
+import { useBookingDraft, type BookingDraft } from '@/features/booking/useBookingDraft';
 import { useBookingSubmit } from '@/features/booking/useBookingSubmit';
 import { useResourceAvailability } from '@/features/availability/useAvailability';
 import { checkDraft, type BookingProblem } from '@/lib/booking-checks';
@@ -17,7 +18,6 @@ import {
   toSeriesBody,
   toUpdateBody,
   valuesFromReservation,
-  type BookingFormValues,
   type BookingInitial,
 } from '@/lib/booking-form';
 import { dayRange, firstBookableDate, weekdayOf } from '@/lib/booking-time';
@@ -33,6 +33,7 @@ interface BookingFormBodyProps {
   resources: readonly BookableResource[];
   initial: BookingInitial;
   reservation?: Reservation;
+  draft?: BookingDraft;
   onClose: () => void;
 }
 
@@ -42,11 +43,13 @@ export function BookingFormBody({
   resources,
   initial,
   reservation,
+  draft,
   onClose,
 }: BookingFormBodyProps) {
-  const [values, setValues] = useState<BookingFormValues>(() =>
+  const ownDraft = useBookingDraft(() =>
     reservation ? valuesFromReservation(reservation) : initialValues(initial, resources[0].id),
   );
+  const { values, patch, reset } = draft ?? ownDraft;
   const submit = useBookingSubmit(reservation);
 
   const selected = resources.find((resource) => resource.id === values.resourceId) ?? resources[0];
@@ -108,19 +111,6 @@ export function BookingFormBody({
     },
   ];
 
-  const patch = (next: Partial<BookingFormValues>) =>
-    setValues((previous) => {
-      const merged = { ...previous, ...next };
-      if (next.startDate === undefined || next.startDate === previous.startDate) return merged;
-      const wasSameDay = previous.endDate === previous.startDate;
-      return {
-        ...merged,
-        endDate:
-          wasSameDay || merged.endDate < merged.startDate ? merged.startDate : merged.endDate,
-        repeat: { ...merged.repeat, weekdays: [weekdayOf(merged.startDate)] },
-      };
-    });
-
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     const messages = problems.map((problem) => bookingProblemMessages[problem]);
@@ -156,7 +146,7 @@ export function BookingFormBody({
 
   const resetForAnother = () => {
     submit.clearFeedback();
-    setValues(initialValues(initial, resources[0].id));
+    reset(initialValues(initial, resources[0].id));
   };
 
   const submitLabel = reservation
@@ -166,83 +156,87 @@ export function BookingFormBody({
       : labels.submit;
 
   return (
-    <div className="grid gap-4 md:grid-cols-[3fr_2fr]">
-      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
-        <BookingFields
-          values={values}
-          resources={resources}
-          selected={selected}
-          minDate={reservation ? undefined : firstBookableDate()}
-          onChange={patch}
-        />
-
-        {!reservation && (
-          <RepeatFields
-            value={values.repeat}
-            startWeekday={weekdayOf(values.startDate)}
-            onChange={(repeat) => setValues({ ...values, repeat })}
+    <div className="@container">
+      <div className="grid gap-4 @2xl:grid-cols-[3fr_2fr]">
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
+          <BookingFields
+            values={values}
+            resources={resources}
+            selected={selected}
+            minDate={reservation ? undefined : firstBookableDate()}
+            onChange={patch}
           />
-        )}
 
-        {!reservation && values.repeat.enabled && (
-          <div className="flex flex-col gap-3">
-            <button
-              type="button"
-              className="btn btn-outline"
-              disabled={submit.preview.isPending}
-              onClick={handlePreview}
+          {!reservation && (
+            <RepeatFields
+              value={values.repeat}
+              startWeekday={weekdayOf(values.startDate)}
+              onChange={(repeat) => patch({ repeat })}
+            />
+          )}
+
+          {!reservation && values.repeat.enabled && (
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                className="btn btn-outline"
+                disabled={submit.preview.isPending}
+                onClick={handlePreview}
+              >
+                {submit.preview.isPending ? labels.previewing : labels.preview}
+              </button>
+              {submit.preview.isError && (
+                <p role="alert" className="font-semibold text-red-700">
+                  {messageForError(submit.preview.error)}
+                </p>
+              )}
+              {submit.preview.data && (
+                <SeriesPreviewList occurrences={submit.preview.data.occurrences} />
+              )}
+            </div>
+          )}
+
+          <ul className="flex flex-col gap-2 @2xl:hidden">
+            {rules
+              .filter((rule) => rule.violated)
+              .map((rule) => (
+                <li key={rule.key} className="alert">
+                  {rule.text}
+                </li>
+              ))}
+          </ul>
+
+          <button type="submit" className="btn btn-gold" disabled={submit.isPending}>
+            {submit.isPending && <span className="spinner" aria-hidden />}
+            {submit.isPending ? labels.sending : submitLabel}
+          </button>
+        </form>
+
+        <aside className="panel hidden flex-col gap-3 self-start @2xl:flex">
+          <h2 className="text-base font-bold text-brand">{labels.validations}</h2>
+          {rules.map((rule) => (
+            <div
+              key={rule.key}
+              className={cn(
+                rule.violated
+                  ? 'alert'
+                  : 'rounded-[10px] border border-line bg-soft p-3 text-brand',
+              )}
             >
-              {submit.preview.isPending ? labels.previewing : labels.preview}
-            </button>
-            {submit.preview.isError && (
-              <p role="alert" className="font-semibold text-red-700">
-                {messageForError(submit.preview.error)}
-              </p>
-            )}
-            {submit.preview.data && (
-              <SeriesPreviewList occurrences={submit.preview.data.occurrences} />
-            )}
-          </div>
-        )}
+              {rule.text}
+            </div>
+          ))}
+          {conflict && <div className="alert">{labels.conflicts[conflict]}</div>}
+          <small className="text-ink-soft">{labels.trainingHint}</small>
+        </aside>
 
-        <ul className="flex flex-col gap-2 md:hidden">
-          {rules
-            .filter((rule) => rule.violated)
-            .map((rule) => (
-              <li key={rule.key} className="alert">
-                {rule.text}
-              </li>
-            ))}
-        </ul>
-
-        <button type="submit" className="btn btn-gold" disabled={submit.isPending}>
-          {submit.isPending && <span className="spinner" aria-hidden />}
-          {submit.isPending ? labels.sending : submitLabel}
-        </button>
-      </form>
-
-      <aside className="panel hidden flex-col gap-3 self-start md:flex">
-        <h2 className="text-base font-bold text-brand">{labels.validations}</h2>
-        {rules.map((rule) => (
-          <div
-            key={rule.key}
-            className={cn(
-              rule.violated ? 'alert' : 'rounded-[10px] border border-line bg-soft p-3 text-brand',
-            )}
-          >
-            {rule.text}
-          </div>
-        ))}
-        {conflict && <div className="alert">{labels.conflicts[conflict]}</div>}
-        <small className="text-ink-soft">{labels.trainingHint}</small>
-      </aside>
-
-      <BookingFeedbackDialogs
-        feedback={submit.feedback}
-        onDismiss={submit.clearFeedback}
-        onAnother={resetForAnother}
-        onClose={onClose}
-      />
+        <BookingFeedbackDialogs
+          feedback={submit.feedback}
+          onDismiss={submit.clearFeedback}
+          onAnother={resetForAnother}
+          onClose={onClose}
+        />
+      </div>
     </div>
   );
 }

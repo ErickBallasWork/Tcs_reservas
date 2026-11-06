@@ -34,6 +34,12 @@ const ADMIN_CATALOG: NavItem = {
   shortLabel: 'Catálogo',
 };
 
+const FLOOR_PLANS: NavItem = {
+  href: '/admin/floor-plans',
+  label: 'Planos de los edificios',
+  shortLabel: 'Planos',
+};
+
 const OPERATING_HOURS: NavItem = {
   href: '/admin/operating-hours',
   label: 'Horario operativo',
@@ -70,6 +76,7 @@ export const navByRole: Record<Role, NavItem[]> = {
     BUILDINGS,
     RESOURCES,
     ADMIN_CATALOG,
+    FLOOR_PLANS,
     OPERATING_HOURS,
     { href: '/admin/sanctions', label: 'Sanciones y auditoría', shortLabel: 'Sanciones' },
     { href: '/admin/reports', label: 'Reportes', shortLabel: 'Reportes' },
@@ -89,6 +96,7 @@ export const navByRole: Record<Role, NavItem[]> = {
     BUILDINGS,
     RESOURCES,
     ADMIN_CATALOG,
+    FLOOR_PLANS,
     OPERATING_HOURS,
     CATALOG,
     TRAINING_INBOX,

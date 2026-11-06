@@ -9,16 +9,18 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { BookingForm } from '@/features/booking/BookingForm';
+import type { BookingDraft } from '@/features/booking/useBookingDraft';
 import type { BookingInitial } from '@/lib/booking-form';
 import { bookingLabels as labels } from '@/lib/labels';
 
 interface BookingDialogProps {
   initial: BookingInitial;
   reservation?: Reservation;
+  draft?: BookingDraft;
   onClose: () => void;
 }
 
-export function BookingDialog({ initial, reservation, onClose }: BookingDialogProps) {
+export function BookingDialog({ initial, reservation, draft, onClose }: BookingDialogProps) {
   const title = reservation ? labels.editTitle : labels.createTitle;
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -27,7 +29,7 @@ export function BookingDialog({ initial, reservation, onClose }: BookingDialogPr
           <DialogTitle className="text-lg font-bold text-brand">{title}</DialogTitle>
           <DialogDescription className="sr-only">{title}</DialogDescription>
         </DialogHeader>
-        <BookingForm initial={initial} reservation={reservation} onClose={onClose} />
+        <BookingForm initial={initial} reservation={reservation} draft={draft} onClose={onClose} />
       </DialogContent>
     </Dialog>
   );

@@ -628,6 +628,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/floor-plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar planos de piso (RF-19) */
+        get: operations["FloorPlansController_list"];
+        put?: never;
+        /** Crear el plano de un piso de un edificio (RF-19) */
+        post: operations["FloorPlansController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/floor-plans/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ver un plano con sus zonas (RF-19) */
+        get: operations["FloorPlansController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Editar, redimensionar o inactivar un plano (RF-19) */
+        patch: operations["FloorPlansController_update"];
+        trace?: never;
+    };
+    "/api/v1/floor-plans/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Estado de las zonas y laptops de un plano en un rango (RF-19) */
+        get: operations["FloorPlansController_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/floor-plans/{id}/zones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Reemplazar las zonas dibujadas de un plano (RF-19) */
+        put: operations["FloorPlansController_replaceZones"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sanctions": {
         parameters: {
             query?: never;
@@ -1141,7 +1211,7 @@ export interface components {
             pushFailed: number;
         };
         /** @enum {string} */
-        ErrorCode: "ACCESS_REQUEST_COOLDOWN" | "ACCESS_REQUEST_NOT_APPROVED" | "ACCESS_REQUEST_NOT_FOUND" | "ACCESS_REQUEST_PENDING" | "ACCESS_REQUEST_REDEEMED" | "ALREADY_RESOLVED" | "ALREADY_STARTED" | "ATTENDEES_EXCEEDS_CAPACITY" | "ATTENDEES_REQUIRED" | "BAD_REQUEST" | "BUILDING_INACTIVE" | "BUILDING_NAME_TAKEN" | "BUILDING_NOT_ALLOWED" | "BUILDING_NOT_FOUND" | "BUILDING_REQUIRED" | "CANCEL_TOO_LATE" | "CLOSED_DATE_NOT_FOUND" | "CANNOT_APPROVE_OWN" | "CANNOT_MANAGE_SELF" | "CAPACITY_REQUIRED" | "COMMENTS_REQUIRED" | "CONCURRENT_CONFLICT" | "CONFLICT" | "DATABASE_UNAVAILABLE" | "DEVICE_NOT_AUTHORIZED" | "DEVICE_NOT_FOUND" | "DOMAIN_NOT_ALLOWED" | "DUPLICATE" | "EDIT_TOO_LATE" | "END_BEFORE_START" | "ERROR" | "FORBIDDEN" | "FORBIDDEN_ROLE" | "FORBIDDEN_ROLE_ASSIGNMENT" | "FOREIGN_KEY" | "HAS_FUTURE_RESERVATIONS" | "INCOMPLETE_TIMES" | "INVALID_DATE" | "INVALID_OPERATING_HOURS" | "INVALID_JOB_KEY" | "INVALID_RANGE" | "INVALID_TOKEN" | "LAB_REQUIRED" | "LAST_SUPERADMIN" | "MAX_DURATION" | "MIN_ADVANCE" | "NO_TOKEN" | "NOT_A_MANAGER" | "NOT_ALIGNED" | "NOT_CANCELLABLE" | "NOT_CHECKABLE" | "NOT_EDITABLE" | "NOT_FOUND" | "NOT_OWNER" | "NOT_PENDING" | "NOT_REALLOCATABLE" | "NOT_YOUR_APPROVAL" | "NOT_YOUR_BUILDING" | "OUTSIDE_OPERATING_HOURS" | "NOTHING_TO_CHANGE" | "NOTIFICATION_NOT_FOUND" | "ONLY_ROOMS" | "OUTSIDE_CHECKIN_WINDOW" | "PARENT_INACTIVE" | "PARENT_NOT_ALLOWED" | "RANGE_TOO_LONG" | "RESERVATION_NOT_FOUND" | "RESOURCE_INACTIVE" | "RESOURCE_NAME_TAKEN" | "RESOURCE_NOT_FOUND" | "ROLE_NOT_FOUND" | "SANCTION_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "SERIES_EMPTY" | "SERIES_LIMIT_REQUIRED" | "SERIES_NOT_FOUND" | "SERIES_START_NOT_IN_WEEKDAYS" | "SERIES_TOO_LONG" | "SLOT_TAKEN" | "START_IN_PAST" | "TOO_MANY_REQUESTS" | "UNAUTHORIZED" | "UNKNOWN_USER" | "UNPROCESSABLE" | "USER_INACTIVE" | "USER_NOT_FOUND" | "USER_SANCTIONED" | "WRONG_RESOURCE_TYPE";
+        ErrorCode: "ACCESS_REQUEST_COOLDOWN" | "ACCESS_REQUEST_NOT_APPROVED" | "ACCESS_REQUEST_NOT_FOUND" | "ACCESS_REQUEST_PENDING" | "ACCESS_REQUEST_REDEEMED" | "ALREADY_RESOLVED" | "ALREADY_STARTED" | "ATTENDEES_EXCEEDS_CAPACITY" | "ATTENDEES_REQUIRED" | "BAD_REQUEST" | "BUILDING_INACTIVE" | "BUILDING_NAME_TAKEN" | "BUILDING_NOT_ALLOWED" | "BUILDING_NOT_FOUND" | "BUILDING_REQUIRED" | "CANCEL_TOO_LATE" | "CLOSED_DATE_NOT_FOUND" | "CANNOT_APPROVE_OWN" | "CANNOT_MANAGE_SELF" | "CAPACITY_REQUIRED" | "COMMENTS_REQUIRED" | "CONCURRENT_CONFLICT" | "CONFLICT" | "DATABASE_UNAVAILABLE" | "DEVICE_NOT_AUTHORIZED" | "DEVICE_NOT_FOUND" | "DOMAIN_NOT_ALLOWED" | "DUPLICATE" | "EDIT_TOO_LATE" | "END_BEFORE_START" | "ERROR" | "FLOOR_PLAN_ALREADY_EXISTS" | "FLOOR_PLAN_NOT_FOUND" | "FLOOR_PLAN_RANGE_INVALID" | "FLOOR_ZONE_NOT_FOUND" | "FLOOR_ZONE_OUT_OF_BOUNDS" | "FLOOR_ZONE_RESOURCE_INVALID" | "FLOOR_ZONE_RESOURCE_TAKEN" | "FORBIDDEN" | "FORBIDDEN_ROLE" | "FORBIDDEN_ROLE_ASSIGNMENT" | "FOREIGN_KEY" | "HAS_FUTURE_RESERVATIONS" | "INCOMPLETE_TIMES" | "INVALID_DATE" | "INVALID_OPERATING_HOURS" | "INVALID_JOB_KEY" | "INVALID_RANGE" | "INVALID_TOKEN" | "LAB_REQUIRED" | "LAST_SUPERADMIN" | "MAX_DURATION" | "MIN_ADVANCE" | "NO_TOKEN" | "NOT_A_MANAGER" | "NOT_ALIGNED" | "NOT_CANCELLABLE" | "NOT_CHECKABLE" | "NOT_EDITABLE" | "NOT_FOUND" | "NOT_OWNER" | "NOT_PENDING" | "NOT_REALLOCATABLE" | "NOT_YOUR_APPROVAL" | "NOT_YOUR_BUILDING" | "OUTSIDE_OPERATING_HOURS" | "NOTHING_TO_CHANGE" | "NOTIFICATION_NOT_FOUND" | "ONLY_ROOMS" | "OUTSIDE_CHECKIN_WINDOW" | "PARENT_INACTIVE" | "PARENT_NOT_ALLOWED" | "RANGE_TOO_LONG" | "RESERVATION_NOT_FOUND" | "RESOURCE_INACTIVE" | "RESOURCE_NAME_TAKEN" | "RESOURCE_NOT_FOUND" | "ROLE_NOT_FOUND" | "SANCTION_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "SERIES_EMPTY" | "SERIES_LIMIT_REQUIRED" | "SERIES_NOT_FOUND" | "SERIES_START_NOT_IN_WEEKDAYS" | "SERIES_TOO_LONG" | "SLOT_TAKEN" | "START_IN_PAST" | "TOO_MANY_REQUESTS" | "UNAUTHORIZED" | "UNKNOWN_USER" | "UNPROCESSABLE" | "USER_INACTIVE" | "USER_NOT_FOUND" | "USER_SANCTIONED" | "WRONG_RESOURCE_TYPE";
         ApiErrorResponseDto: {
             /** @example 404 */
             statusCode: number;
@@ -1638,6 +1708,147 @@ export interface components {
             openWindows: components["schemas"]["OpenWindowDto"][];
             /** @description Active laptops of an AI lab */
             laptops: components["schemas"]["LaptopAvailabilityDto"][];
+        };
+        FloorPlanSummaryDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            buildingId: string;
+            buildingName: string;
+            level: number;
+            name: string;
+            width: number;
+            height: number;
+            isActive: boolean;
+        };
+        /** @enum {string} */
+        FloorZoneKind: "ROOM" | "LAB" | "DECORATIVE" | "LABEL";
+        /** @enum {string} */
+        FloorResourceType: "MEETING_ROOM" | "AI_LAB";
+        FloorZoneResourceDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["FloorResourceType"];
+            capacity: number;
+            isActive: boolean;
+        };
+        FloorSeatDto: {
+            /** Format: uuid */
+            resourceId: string;
+            name: string;
+        };
+        FloorZoneDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            kind: components["schemas"]["FloorZoneKind"];
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            isReservable: boolean;
+            sortOrder: number;
+            /** Format: uuid */
+            resourceId: string | null;
+            resource: components["schemas"]["FloorZoneResourceDto"] | null;
+            /** @description Active laptops of the linked AI lab, sorted by name. Empty for other zones */
+            seats: components["schemas"]["FloorSeatDto"][];
+        };
+        FloorPlanDetailDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            buildingId: string;
+            buildingName: string;
+            level: number;
+            name: string;
+            width: number;
+            height: number;
+            isActive: boolean;
+            /** @description Sorted by sortOrder */
+            zones: components["schemas"]["FloorZoneDto"][];
+        };
+        /** @enum {string} */
+        FloorState: "FREE" | "OCCUPIED" | "MINE" | "OUT_OF_FILTER" | "NOT_RESERVABLE";
+        /** @enum {string} */
+        FloorStateReason: "TYPE" | "CAPACITY" | "CLOSED" | "INACTIVE";
+        FloorZoneStatusDto: {
+            /** Format: uuid */
+            zoneId: string;
+            state: components["schemas"]["FloorState"];
+            reason: components["schemas"]["FloorStateReason"] | null;
+            /** @description Active laptops of a lab zone */
+            totalSeats: number | null;
+            /** @description Laptops with no busy slot */
+            freeSeats: number | null;
+        };
+        FloorSeatStatusDto: {
+            /** Format: uuid */
+            resourceId: string;
+            state: components["schemas"]["FloorState"];
+        };
+        FloorPlanStatusDto: {
+            /** Format: uuid */
+            floorPlanId: string;
+            /** Format: date-time */
+            from: string;
+            /** Format: date-time */
+            to: string;
+            zones: components["schemas"]["FloorZoneStatusDto"][];
+            seats: components["schemas"]["FloorSeatStatusDto"][];
+        };
+        CreateFloorPlanDto: {
+            /** Format: uuid */
+            buildingId: string;
+            /** @example Planta principal */
+            name: string;
+            /**
+             * @description Width of the drawing in plan units
+             * @example 900
+             */
+            width: number;
+            /**
+             * @description Height of the drawing in plan units
+             * @example 600
+             */
+            height: number;
+            /**
+             * @description Floor number; 0 when omitted
+             * @default 0
+             */
+            level: number;
+        };
+        UpdateFloorPlanDto: {
+            name?: string;
+            width?: number;
+            height?: number;
+            /** @description false hides the plan from non-administrators */
+            isActive?: boolean;
+        };
+        FloorZoneInputDto: {
+            /**
+             * Format: uuid
+             * @description Existing zone to update; omit to create
+             */
+            id?: string;
+            /** @example Board */
+            name: string;
+            kind: components["schemas"]["FloorZoneKind"];
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            isReservable: boolean;
+            /**
+             * Format: uuid
+             * @description Room or AI lab the zone books. Required when the zone is reservable
+             */
+            resourceId?: string | null;
+            sortOrder: number;
+        };
+        ReplaceFloorZonesDto: {
+            zones: components["schemas"]["FloorZoneInputDto"][];
         };
         /** @enum {string} */
         SanctionType: "NO_SHOW";
@@ -4407,6 +4618,476 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResourceAvailabilityResponseDto"];
+                };
+            };
+        };
+    };
+    FloorPlansController_list: {
+        parameters: {
+            query?: {
+                buildingId?: string;
+                /** @description true also returns inactive plans (administrators only) */
+                includeInactive?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FloorPlanSummaryDto"][];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    FloorPlansController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFloorPlanDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FloorPlanDetailDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    FloorPlansController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FloorPlanDetailDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    FloorPlansController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateFloorPlanDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FloorPlanDetailDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    FloorPlansController_status: {
+        parameters: {
+            query: {
+                /** @description Range start (ISO 8601) */
+                from: string;
+                /** @description Range end (ISO 8601), at most 48 h after from */
+                to: string;
+                type?: components["schemas"]["FloorResourceType"];
+                /** @description Minimum capacity */
+                minCapacity?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FloorPlanStatusDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    FloorPlansController_replaceZones: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceFloorZonesDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FloorPlanDetailDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
                 };
             };
         };

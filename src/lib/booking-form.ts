@@ -156,3 +156,17 @@ export function toUpdateBody(
 export function isSlotChange(body: UpdateReservationBody): boolean {
   return body.resourceId !== undefined || body.startDateTime !== undefined;
 }
+
+export function applyBookingPatch(
+  previous: BookingFormValues,
+  patch: Partial<BookingFormValues>,
+): BookingFormValues {
+  const merged = { ...previous, ...patch };
+  if (patch.startDate === undefined || patch.startDate === previous.startDate) return merged;
+  const wasSameDay = previous.endDate === previous.startDate;
+  return {
+    ...merged,
+    endDate: wasSameDay || merged.endDate < merged.startDate ? merged.startDate : merged.endDate,
+    repeat: { ...merged.repeat, weekdays: [weekdayOf(merged.startDate)] },
+  };
+}

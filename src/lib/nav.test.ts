@@ -39,6 +39,17 @@ describe('navForRoles', () => {
     },
   );
 
+  it.each([['LIDER'], ['SPOC_ADMIN'], ['ADMIN'], ['SUPERADMIN']] as const)(
+    'gives the tracking panel to %s',
+    (role) => {
+      expect(hrefs([role])).toContain('/leader/dashboard');
+    },
+  );
+
+  it('keeps the tracking panel away from associates', () => {
+    expect(hrefs(['ASOCIADO'])).not.toContain('/leader/dashboard');
+  });
+
   it('keeps the training inbox away from associates', () => {
     expect(hrefs(['ASOCIADO'])).not.toContain('/leader/inbox');
   });

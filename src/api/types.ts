@@ -57,3 +57,4 @@ export type OperatingWindow = Schemas['OperatingWindowDto'];
 export type ReplaceOperatingHoursBody = Schemas['ReplaceOperatingHoursDto'];
 export type ClosedDate = Schemas['ClosedDateResponseDto'];
 export type CreateClosedDateBody = Schemas['CreateClosedDateDto'];
+export type DashboardMetrics = Schemas['DashboardMetricsResponseDto'];

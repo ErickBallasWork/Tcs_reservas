@@ -540,3 +540,30 @@ export const operatingHoursLabels = {
   noClosedDates: 'No hay días cerrados próximos.',
   reopen: 'Reabrir',
 };
+
+export const dashboardLabels = {
+  title: 'Panel de seguimiento',
+  mobileTitle: 'Panel',
+  intro: 'Solicitudes de las personas a tu cargo. Se actualiza solo cada 20 segundos.',
+  introAll: 'Solicitudes de todas las personas. Se actualiza solo cada 20 segundos.',
+  from: 'Desde',
+  to: 'Hasta',
+  status: 'Estado',
+  purpose: 'Motivo',
+  allStatuses: 'Todos',
+  allPurposes: 'Todos',
+  invalidRange: 'La fecha inicial no puede ser posterior a la final.',
+  loading: 'Cargando panel…',
+  retry: 'Reintentar',
+  refresh: 'Actualizar',
+  updatedAt: (time: string) => `Actualizado a las ${time}`,
+  empty: 'No hay solicitudes con estos filtros.',
+  metrics: {
+    total: 'Solicitudes',
+    noShowRate: 'Tasa de inasistencia',
+  },
+  requestedBy: (name: string) => `Solicita ${name}`,
+  previous: 'Anterior',
+  next: 'Siguiente',
+  pageOf: (page: number, pages: number) => `Página ${page} de ${pages}`,
+};

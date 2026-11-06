@@ -43,7 +43,6 @@ export function AvailabilityView() {
 
   // Estado para controlar el Modal de Reserva
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedResource, setSelectedResource] = useState<string | undefined>(undefined);
 
   const markedDates = useMemo(() => getDaysWithReservations(), []);
   const activeBuildings = buildings.filter((b) => b.active);
@@ -81,10 +80,7 @@ export function AvailabilityView() {
     </select>
   );
 
-  const openModal = (resourceId?: string) => {
-    setSelectedResource(resourceId);
-    setIsModalOpen(true);
-  };
+  const openModal = () => setIsModalOpen(true);
 
   return (
     <>
@@ -173,7 +169,7 @@ export function AvailabilityView() {
               <Tag variant="gold">Bloqueado por laboratorio</Tag>
               <span className="flex-1" />
               {/* Botón que abre el modal en lugar de usar Link */}
-              <button type="button" onClick={() => openModal()} className="btn btn-gold">
+              <button type="button" onClick={openModal} className="btn btn-gold">
                 Reservar
               </button>
             </div>
@@ -202,7 +198,7 @@ export function AvailabilityView() {
                 </Tag>
               ))}
             </div>
-            <button type="button" onClick={() => openModal(r.id)} className="btn btn-gold">
+            <button type="button" onClick={openModal} className="btn btn-gold">
               Reservar
             </button>
             {r.type === 'laptop' && (

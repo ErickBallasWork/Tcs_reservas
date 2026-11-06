@@ -16,9 +16,7 @@ export function MyReservationsList() {
 
   const handleCancel = (id: string) => {
     setReservationList((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, status: 'cancelled' as ReservationStatus } : item,
-      ),
+      prev.map((item) => (item.id === id ? { ...item, status: 'cancelled' } : item)),
     );
   };
 

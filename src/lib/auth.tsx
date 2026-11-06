@@ -1,6 +1,8 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useSyncExternalStore } from 'react';
+import { readStorageItem, subscribeToStorage, writeStorageItem } from '@/lib/browser-storage';
+import { roleLabels } from '@/lib/labels';
 import type { Role } from '@/types';
 
 interface Session {
@@ -12,7 +14,7 @@ interface AuthContextValue {
   setRole: (role: Role) => void;
   userName: string;
   session: Session | null;
-  ready: boolean; // true once the stored session has been read
+  ready: boolean;
   login: (email: string) => void;
   logout: () => void;
 }
@@ -20,43 +22,56 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 const ROLE_KEY = 'mock-role';
 const SESSION_KEY = 'mock-session';
+const DEFAULT_ROLE: Role = 'associate';
+
+function isRole(value: string | null): value is Role {
+  return value !== null && Object.hasOwn(roleLabels, value);
+}
+
+function parseSession(raw: string | null): Session | null {
+  if (!raw) return null;
+  try {
+    const value: unknown = JSON.parse(raw);
+    if (typeof value === 'object' && value !== null && 'email' in value) {
+      const { email } = value;
+      if (typeof email === 'string') return { email };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function useStorageItem(key: string): string | null {
+  return useSyncExternalStore(
+    subscribeToStorage,
+    () => readStorageItem(key),
+    () => null,
+  );
+}
+
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    subscribeToStorage,
+    () => true,
+    () => false,
+  );
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRoleState] = useState<Role>('associate');
-  const [session, setSession] = useState<Session | null>(null);
-  const [ready, setReady] = useState(false);
+  const storedRole = useStorageItem(ROLE_KEY);
+  const storedSession = useStorageItem(SESSION_KEY);
+  const ready = useHydrated();
 
-  useEffect(() => {
-    try {
-      const savedRole = localStorage.getItem(ROLE_KEY) as Role | null;
-      if (savedRole) setRoleState(savedRole);
-      const savedSession = localStorage.getItem(SESSION_KEY);
-      if (savedSession) setSession(JSON.parse(savedSession));
-    } catch {}
-    setReady(true);
-  }, []);
+  const role = isRole(storedRole) ? storedRole : DEFAULT_ROLE;
+  const session = useMemo(() => parseSession(storedSession), [storedSession]);
 
-  const setRole = (next: Role) => {
-    setRoleState(next);
-    try {
-      localStorage.setItem(ROLE_KEY, next);
-    } catch {}
-  };
-
-  const login = useCallback((email: string) => {
-    const next = { email };
-    setSession(next);
-    try {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(next));
-    } catch {}
-  }, []);
-
-  const logout = useCallback(() => {
-    setSession(null);
-    try {
-      localStorage.removeItem(SESSION_KEY);
-    } catch {}
-  }, []);
+  const setRole = useCallback((next: Role) => writeStorageItem(ROLE_KEY, next), []);
+  const login = useCallback(
+    (email: string) => writeStorageItem(SESSION_KEY, JSON.stringify({ email })),
+    [],
+  );
+  const logout = useCallback(() => writeStorageItem(SESSION_KEY, null), []);
 
   return (
     <AuthContext.Provider

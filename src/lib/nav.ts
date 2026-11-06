@@ -16,6 +16,24 @@ const USERS: NavItem = { href: '/admin/users', label: 'Usuarios y roles', shortL
 
 const CATALOG: NavItem = { href: '/catalog', label: 'Catálogo', shortLabel: 'Catálogo' };
 
+const BUILDINGS: NavItem = {
+  href: '/admin/buildings',
+  label: 'Edificios',
+  shortLabel: 'Edificios',
+};
+
+const RESOURCES: NavItem = {
+  href: '/admin/resources',
+  label: 'Salas y laboratorios',
+  shortLabel: 'Salas',
+};
+
+const ADMIN_CATALOG: NavItem = {
+  href: '/admin/catalog',
+  label: 'Catálogo y laptops',
+  shortLabel: 'Catálogo',
+};
+
 export const navByRole: Record<Role, NavItem[]> = {
   ASOCIADO: [
     { href: '/availability', label: 'Disponibilidad', shortLabel: 'Disponib.' },
@@ -25,9 +43,9 @@ export const navByRole: Record<Role, NavItem[]> = {
   ],
   ADMIN: [
     USERS,
-    { href: '/admin/buildings', label: 'Edificios', shortLabel: 'Edificios' },
-    { href: '/admin/resources', label: 'Salas y laboratorios', shortLabel: 'Salas' },
-    { href: '/admin/catalog', label: 'Catálogo y laptops', shortLabel: 'Catálogo' },
+    BUILDINGS,
+    RESOURCES,
+    ADMIN_CATALOG,
     { href: '/admin/sanctions', label: 'Sanciones y auditoría', shortLabel: 'Sanciones' },
     { href: '/admin/reports', label: 'Reportes', shortLabel: 'Reportes' },
   ],
@@ -37,7 +55,7 @@ export const navByRole: Record<Role, NavItem[]> = {
     { href: '/leader/dashboard', label: 'Panel de seguimiento', shortLabel: 'Panel' },
   ],
   SPOC_EDIFICIO: [{ href: '/spoc/agenda', label: 'Agenda de salas', shortLabel: 'Agenda' }],
-  SUPERADMIN: [ACCESS_REQUESTS, USERS, CATALOG],
+  SUPERADMIN: [ACCESS_REQUESTS, USERS, BUILDINGS, RESOURCES, ADMIN_CATALOG, CATALOG],
 };
 
 const ROLE_PRIORITY: readonly Role[] = [

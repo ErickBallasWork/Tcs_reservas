@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { Reservation } from '@/api/types';
+import type { Reservation, ReservationReallocation } from '@/api/types';
 import {
   canCancelReservation,
   canEditReservation,
   seriesPosition,
+  wasReallocated,
 } from '@/lib/reservation-actions';
 
 const NOW = new Date('2026-11-06T12:00:00Z');
@@ -22,6 +23,59 @@ describe('canCancelReservation', () => {
     for (const status of ['REJECTED', 'CANCELLED', 'CHECKED_IN', 'NO_SHOW'] as const) {
       expect(canCancelReservation({ status, startDateTime: at(48) }, NOW)).toBe(false);
     }
+  });
+});
+
+const resource = {
+  id: 'room',
+  name: 'Sala',
+  type: 'MEETING_ROOM' as const,
+  building: { id: 'b', name: 'Edificio' },
+  parent: null,
+};
+const reallocation: ReservationReallocation = {
+  id: 'r1',
+  reservationId: 'res',
+  previousResourceId: 'room',
+  newResourceId: 'room-2',
+  responsibleUserId: 'spoc',
+  previousStartDateTime: at(30),
+  previousEndDateTime: at(31),
+  newStartDateTime: at(2),
+  newEndDateTime: at(3),
+  justification: 'Visita de cliente',
+  reallocationDate: NOW.toISOString(),
+  previousResource: resource,
+  newResource: resource,
+};
+
+describe('canCancelReservation after a reallocation', () => {
+  it('waives the 24 h advance', () => {
+    const moved = {
+      status: 'CONFIRMED' as const,
+      startDateTime: at(2),
+      reallocations: [reallocation],
+    };
+
+    expect(canCancelReservation(moved, NOW)).toBe(true);
+    expect(wasReallocated(moved)).toBe(true);
+  });
+
+  it('closes once the reservation starts', () => {
+    const started = {
+      status: 'CONFIRMED' as const,
+      startDateTime: at(-1),
+      reallocations: [reallocation],
+    };
+
+    expect(canCancelReservation(started, NOW)).toBe(false);
+  });
+
+  it('keeps the 24 h advance for a reservation that was never moved', () => {
+    const plain = { status: 'CONFIRMED' as const, startDateTime: at(2), reallocations: [] };
+
+    expect(canCancelReservation(plain, NOW)).toBe(false);
+    expect(wasReallocated(plain)).toBe(false);
   });
 });
 

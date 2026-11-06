@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReservationWithApprovals } from '@/api/types';
+import type { ReservationDetail, ReservationWithApprovals } from '@/api/types';
 import { Tag } from '@/components/shared/Tag';
 import { approvalOutcome, type ApprovalOutcome } from '@/lib/approval-outcome';
 import { formatRange } from '@/lib/booking-time';
@@ -14,12 +14,30 @@ import {
   canCancelReservation,
   canEditReservation,
   seriesPosition,
+  wasReallocated,
 } from '@/lib/reservation-actions';
 
 interface ReservationItemProps {
-  reservation: ReservationWithApprovals;
+  reservation: ReservationDetail;
   onEdit: (reservation: ReservationWithApprovals) => void;
   onCancel: (reservation: ReservationWithApprovals) => void;
+}
+
+function ReallocationNote({ reservation }: { reservation: ReservationDetail }) {
+  const latest = reservation.reallocations[0];
+  if (!latest) return null;
+  const previousRoom = `${latest.previousResource.name} (${latest.previousResource.building.name})`;
+  return (
+    <small className="flex flex-col text-ink-soft">
+      <span>
+        {labels.reallocatedBefore(
+          previousRoom,
+          formatRange(latest.previousStartDateTime, latest.previousEndDateTime),
+        )}
+      </span>
+      <span>{labels.reallocatedReason(latest.justification)}</span>
+    </small>
+  );
 }
 
 function StatusTag({ status }: { status: ReservationWithApprovals['status'] }) {
@@ -55,6 +73,7 @@ export function ReservationItem({ reservation, onEdit, onCancel }: ReservationIt
   const outcome = approvalOutcome(reservation);
   const editable = canEditReservation(reservation);
   const cancellable = canCancelReservation(reservation);
+  const reallocated = wasReallocated(reservation);
   const open = reservation.status === 'CONFIRMED' || reservation.status === 'PENDING_APPROVAL';
 
   return (
@@ -70,6 +89,7 @@ export function ReservationItem({ reservation, onEdit, onCancel }: ReservationIt
           {position && (
             <Tag variant="gold">{labels.seriesBadge(position.index, position.total)}</Tag>
           )}
+          {reallocated && <Tag variant="dark">{labels.reallocatedBadge}</Tag>}
           <StatusTag status={reservation.status} />
         </div>
       </div>
@@ -82,6 +102,7 @@ export function ReservationItem({ reservation, onEdit, onCancel }: ReservationIt
         </span>
         <span className="text-ink-soft">{reservation.justification}</span>
         {outcome && <ApprovalNote outcome={outcome} />}
+        {reallocated && <ReallocationNote reservation={reservation} />}
       </div>
 
       {open && (
@@ -102,6 +123,9 @@ export function ReservationItem({ reservation, onEdit, onCancel }: ReservationIt
           >
             {labels.cancel}
           </button>
+          {reallocated && cancellable && (
+            <small className="w-full text-ink-soft">{labels.reallocatedCancel}</small>
+          )}
           {!cancellable && editable && (
             <small className="w-full text-ink-soft">{labels.tooLate}</small>
           )}

@@ -2,8 +2,8 @@ import { apiClient } from '@/api/api-client';
 import type {
   CreateReservationBody,
   CreateSeriesBody,
+  MyReservationPage,
   ReservationDetail,
-  ReservationPage,
   ReservationStatus,
   SeriesCancelResult,
   SeriesCreated,
@@ -20,7 +20,9 @@ export interface MyReservationsFilter {
   to?: string;
 }
 
-export async function fetchMyReservations(filter: MyReservationsFilter): Promise<ReservationPage> {
+export async function fetchMyReservations(
+  filter: MyReservationsFilter,
+): Promise<MyReservationPage> {
   return unwrap(await apiClient.GET('/reservations/mine', { params: { query: filter } }));
 }
 

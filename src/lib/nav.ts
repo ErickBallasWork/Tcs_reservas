@@ -9,6 +9,7 @@ export interface NavItem {
 export const navByRole: Record<Role, NavItem[]> = {
   associate: [
     { href: '/availability', label: 'Disponibilidad', shortLabel: 'Disponib.' },
+    { href: '/catalog', label: 'Catálogo', shortLabel: 'Catálogo' },
     { href: '/my-reservations', label: 'Mis reservas', shortLabel: 'Mis reservas' },
     { href: '/notifications', label: 'Notificaciones', shortLabel: 'Avisos' },
   ],

@@ -1,3 +1,4 @@
+import type { ResourceType as ApiResourceType } from '@/api/types';
 import type { ReservationReason, ReservationStatus, ResourceType, Role } from '@/types';
 
 export const appLabels = {
@@ -23,6 +24,21 @@ export const resourceTypeLabels: Record<ResourceType, string> = {
   room: 'Sala',
   ai_lab: 'Laboratorio IA',
   laptop: 'Laptop',
+};
+
+export const catalogResourceTypeLabels: Record<ApiResourceType, string> = {
+  MEETING_ROOM: 'Sala',
+  AI_LAB: 'Laboratorio IA',
+  LAPTOP: 'Laptop',
+};
+
+export const catalogLabels = {
+  loading: 'Cargando catálogo…',
+  empty: 'Todavía no hay edificios en el catálogo.',
+  noResources: 'Este edificio no tiene salas ni laboratorios.',
+  retry: 'Reintentar',
+  capacity: (people: number) => `${people} ${people === 1 ? 'persona' : 'personas'}`,
+  laptops: (count: number) => `${count} ${count === 1 ? 'laptop' : 'laptops'}`,
 };
 
 export const roleLabels: Record<Role, string> = {

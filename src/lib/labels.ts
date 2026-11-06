@@ -36,6 +36,13 @@ export const roleLabels: Record<Role, string> = {
   SUPERADMIN: 'Superadministrador',
 };
 
+export const sanctionBannerLabels = {
+  title: 'Reservas bloqueadas por inasistencia',
+  text: 'No puedes crear ni editar reservas hasta que un Administrador regularice tu sanción. Tus reservas actuales siguen vigentes y puedes cancelarlas.',
+  detail: (reason: string, date: string) => `${reason} · Desde el ${date}`,
+  blockedHint: 'Reservas bloqueadas por una sanción activa.',
+};
+
 export const authLabels = {
   brandTagline: 'Salas de reuniones y Laboratorio de IA',
   checkingDevice: 'Verificando este dispositivo…',

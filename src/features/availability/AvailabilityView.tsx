@@ -11,10 +11,11 @@ import { ResourceAvailabilityCard } from '@/features/availability/ResourceAvaila
 import { SlotLegend } from '@/features/availability/SlotRow';
 import { BookingDialog } from '@/features/booking/BookingDialog';
 import { useCatalogTree } from '@/features/catalog/useCatalogTree';
+import { useActiveSanction } from '@/features/sanctions/useActiveSanction';
 import { useMyReservations } from '@/features/reservations/useReservations';
 import type { BookingInitial } from '@/lib/booking-form';
 import { firstBookableDate, formatDay, toLocal } from '@/lib/booking-time';
-import { availabilityLabels as labels } from '@/lib/labels';
+import { availabilityLabels as labels, sanctionBannerLabels as sanctionLabels } from '@/lib/labels';
 import { slotStartsBetween, type TimeRange } from '@/lib/slot-grid';
 
 const ACTIVE_STATUSES = ['PENDING_APPROVAL', 'CONFIRMED', 'CHECKED_IN'];
@@ -34,6 +35,7 @@ export function AvailabilityView() {
   const [rangeValue, setRangeValue] = useState(labels.ranges[0].value);
   const [minCapacity, setMinCapacity] = useState('');
   const [booking, setBooking] = useState<BookingInitial | null>(null);
+  const isSanctioned = Boolean(useActiveSanction().data);
 
   const tree = useCatalogTree();
   const mine = useMyReservations({ page: 1, pageSize: 100, from: new Date().toISOString() });
@@ -68,6 +70,7 @@ export function AvailabilityView() {
   const shiftMonth = (delta: number) => setMonth(format(addMonths(monthDate, delta), 'yyyy-MM'));
 
   const handleReserve = (resourceId: string | undefined, picked?: TimeRange) => {
+    if (isSanctioned) return;
     const startTime = picked ? toLocal(picked.start).time : range.from;
     const pickedEnd = picked ? toLocal(picked.end).time : null;
     const minimumEnd = addMinutes(startTime, HOUR_MINUTES);
@@ -208,7 +211,13 @@ export function AvailabilityView() {
                 onChange={(event) => setMinCapacity(event.target.value)}
               />
             </label>
-            <button type="button" className="btn btn-gold" onClick={() => handleReserve(undefined)}>
+            <button
+              type="button"
+              className="btn btn-gold"
+              disabled={isSanctioned}
+              title={isSanctioned ? sanctionLabels.blockedHint : undefined}
+              onClick={() => handleReserve(undefined)}
+            >
               {labels.reserve}
             </button>
           </div>
@@ -241,7 +250,13 @@ export function AvailabilityView() {
           </select>
         </label>
         {cards}
-        <button type="button" className="btn btn-gold" onClick={() => handleReserve(undefined)}>
+        <button
+          type="button"
+          className="btn btn-gold"
+          disabled={isSanctioned}
+          title={isSanctioned ? sanctionLabels.blockedHint : undefined}
+          onClick={() => handleReserve(undefined)}
+        >
           {labels.reserve}
         </button>
       </div>

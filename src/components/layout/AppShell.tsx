@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { PermissionPrompt } from '@/features/notifications/PermissionPrompt';
+import { SanctionBanner } from '@/features/sanctions/SanctionBanner';
 import { useAuth } from '@/lib/auth';
 import { authLabels, roleLabels } from '@/lib/labels';
 import { canOpen, homeForRoles, navForRoles } from '@/lib/nav';
@@ -111,6 +112,7 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
               {user.fullName}
             </span>
           </div>
+          <SanctionBanner />
           <PermissionPrompt />
           {children}
         </main>

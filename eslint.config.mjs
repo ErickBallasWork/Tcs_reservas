@@ -7,7 +7,15 @@ import tseslint from 'typescript-eslint';
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores(['.next/**', 'out/**', 'build/**', 'coverage/**', 'next-env.d.ts', '*.config.*']),
+  globalIgnores([
+    '.next/**',
+    'out/**',
+    'build/**',
+    'coverage/**',
+    'next-env.d.ts',
+    '*.config.*',
+    'src/api/schema.d.ts',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [tseslint.configs.recommendedTypeChecked],

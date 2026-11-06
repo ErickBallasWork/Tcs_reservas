@@ -5,3 +5,4 @@ node_modules
 package-lock.json
 next-env.d.ts
 .github/workflows/azure-static-web-apps-*.yml
+src/api/schema.d.ts

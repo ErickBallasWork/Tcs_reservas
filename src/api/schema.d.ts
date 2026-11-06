@@ -123,24 +123,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Datos públicos para mostrar el botón de Google (Client ID y modo) */
-        get: operations["AuthController_config"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/google": {
+    "/api/v1/auth/device-session": {
         parameters: {
             query?: never;
             header?: never;
@@ -149,11 +132,42 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Iniciar sesión con Google (solo correos de los dominios permitidos)
-         * @description Recibe el "credential" del botón de Google y devuelve el token de la API (accessToken). El frontend lo envía después en cada petición: Authorization: Bearer <accessToken>.
-         */
-        post: operations["AuthController_google"];
+        /** Primer ingreso de un dispositivo con una solicitud aprobada (una sola vez) */
+        post: operations["AuthController_deviceSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Renovar la sesión de un dispositivo aprobado. El refresh token rota en cada uso */
+        post: operations["AuthController_refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cerrar sesión: revoca el dispositivo dueño del refresh token */
+        post: operations["AuthController_logout"];
         delete?: never;
         options?: never;
         head?: never;
@@ -169,9 +183,43 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Solo AUTH_MODE=demo: iniciar sesión como usuario demo, sin Google */
+        /** Solo desarrollo (DEMO_LOGIN_ENABLED=true): iniciar sesión como usuario demo */
         post: operations["AuthController_demo"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{userId}/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dispositivos aprobados de un usuario */
+        get: operations["DevicesController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/devices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revocar un dispositivo: su sesión deja de funcionar al instante */
+        delete: operations["DevicesController_revoke"];
         options?: never;
         head?: never;
         patch?: never;
@@ -221,8 +269,7 @@ export interface paths {
         /** Listar usuarios con sus roles */
         get: operations["UsersController_list"];
         put?: never;
-        /** Dar de alta un usuario antes de su primer inicio de sesión */
-        post: operations["UsersController_create"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -244,6 +291,93 @@ export interface paths {
         head?: never;
         /** Activar o desactivar un usuario y asignar sus roles */
         patch: operations["UsersController_update"];
+        trace?: never;
+    };
+    "/api/v1/users/{id}/managed-associates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Asociados a cargo de un SPOC Administrativo o Líder */
+        get: operations["ManagedAssociatesController_list"];
+        /** Reemplazar la lista de asociados a cargo */
+        put: operations["ManagedAssociatesController_replace"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bandeja de solicitudes de acceso */
+        get: operations["AccessRequestsController_list"];
+        put?: never;
+        /** Pedir acceso con un correo @tcs.com o @pichincha.com desde este dispositivo */
+        post: operations["AccessRequestsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access-requests/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Estado de una solicitud, solo para el dispositivo que la creó */
+        post: operations["AccessRequestsController_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access-requests/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Aprobar una solicitud y habilitar el dispositivo */
+        post: operations["AccessRequestsController_approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access-requests/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rechazar una solicitud con un comentario */
+        post: operations["AccessRequestsController_reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/buildings": {
@@ -683,7 +817,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {string} */
-        ErrorCode: "ALREADY_RESOLVED" | "ALREADY_STARTED" | "BAD_REQUEST" | "BUILDING_NOT_FOUND" | "BUILDING_REQUIRED" | "CANCEL_TOO_LATE" | "CAPACITY_REQUIRED" | "COMMENTS_REQUIRED" | "CONCURRENT_CONFLICT" | "CONFLICT" | "DATABASE_UNAVAILABLE" | "DOMAIN_NOT_ALLOWED" | "DUPLICATE" | "EMAIL_NOT_VERIFIED" | "END_BEFORE_START" | "ERROR" | "FORBIDDEN" | "FORBIDDEN_ROLE" | "FOREIGN_KEY" | "GOOGLE_NOT_CONFIGURED" | "HAS_FUTURE_RESERVATIONS" | "INVALID_DATE" | "INVALID_GOOGLE_TOKEN" | "INVALID_JOB_KEY" | "INVALID_RANGE" | "INVALID_TOKEN" | "LAB_REQUIRED" | "MAX_DURATION" | "MIN_ADVANCE" | "NO_TOKEN" | "NOT_ALIGNED" | "NOT_CANCELLABLE" | "NOT_CHECKABLE" | "NOT_CORPORATE_ACCOUNT" | "NOT_FOUND" | "NOT_OWNER" | "NOT_PENDING" | "NOT_REALLOCATABLE" | "NOT_YOUR_BUILDING" | "NOTHING_TO_CHANGE" | "NOTIFICATION_NOT_FOUND" | "ONLY_ROOMS" | "OUTSIDE_CHECKIN_WINDOW" | "PARENT_NOT_ALLOWED" | "RANGE_TOO_LONG" | "RESERVATION_NOT_FOUND" | "RESOURCE_INACTIVE" | "RESOURCE_NOT_FOUND" | "ROLE_NOT_FOUND" | "SANCTION_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "SLOT_TAKEN" | "START_IN_PAST" | "TOO_MANY_REQUESTS" | "UNAUTHORIZED" | "UNKNOWN_USER" | "UNPROCESSABLE" | "USER_INACTIVE" | "USER_NOT_FOUND" | "USER_NOT_REGISTERED" | "USER_SANCTIONED" | "WRONG_RESOURCE_TYPE";
+        ErrorCode: "ACCESS_REQUEST_COOLDOWN" | "ACCESS_REQUEST_NOT_APPROVED" | "ACCESS_REQUEST_NOT_FOUND" | "ACCESS_REQUEST_PENDING" | "ACCESS_REQUEST_REDEEMED" | "ALREADY_RESOLVED" | "ALREADY_STARTED" | "BAD_REQUEST" | "BUILDING_NOT_FOUND" | "BUILDING_REQUIRED" | "CANCEL_TOO_LATE" | "CANNOT_MANAGE_SELF" | "CAPACITY_REQUIRED" | "COMMENTS_REQUIRED" | "CONCURRENT_CONFLICT" | "CONFLICT" | "DATABASE_UNAVAILABLE" | "DEVICE_NOT_AUTHORIZED" | "DEVICE_NOT_FOUND" | "DOMAIN_NOT_ALLOWED" | "DUPLICATE" | "END_BEFORE_START" | "ERROR" | "FORBIDDEN" | "FORBIDDEN_ROLE" | "FORBIDDEN_ROLE_ASSIGNMENT" | "FOREIGN_KEY" | "HAS_FUTURE_RESERVATIONS" | "INVALID_DATE" | "INVALID_JOB_KEY" | "INVALID_RANGE" | "INVALID_TOKEN" | "LAB_REQUIRED" | "LAST_SUPERADMIN" | "MAX_DURATION" | "MIN_ADVANCE" | "NO_TOKEN" | "NOT_A_MANAGER" | "NOT_ALIGNED" | "NOT_CANCELLABLE" | "NOT_CHECKABLE" | "NOT_FOUND" | "NOT_OWNER" | "NOT_PENDING" | "NOT_REALLOCATABLE" | "NOT_YOUR_BUILDING" | "NOTHING_TO_CHANGE" | "NOTIFICATION_NOT_FOUND" | "ONLY_ROOMS" | "OUTSIDE_CHECKIN_WINDOW" | "PARENT_NOT_ALLOWED" | "RANGE_TOO_LONG" | "RESERVATION_NOT_FOUND" | "RESOURCE_INACTIVE" | "RESOURCE_NOT_FOUND" | "ROLE_NOT_FOUND" | "SANCTION_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "SLOT_TAKEN" | "START_IN_PAST" | "TOO_MANY_REQUESTS" | "UNAUTHORIZED" | "UNKNOWN_USER" | "UNPROCESSABLE" | "USER_INACTIVE" | "USER_NOT_FOUND" | "USER_SANCTIONED" | "WRONG_RESOURCE_TYPE";
         ApiErrorResponseDto: {
             /** @example 404 */
             statusCode: number;
@@ -696,17 +830,14 @@ export interface components {
             /** Format: date-time */
             timestamp: string;
         };
-        AuthConfigResponseDto: {
-            /** @enum {string} */
-            authMode: "demo" | "google";
-            googleClientId: string | null;
-        };
-        GoogleLoginDto: {
-            /** @description Google ID token ("credential") returned by the sign-in button */
-            credential: string;
+        AccessRequestStatusQueryDto: {
+            /** @description Random secret generated by the browser (base64url, 43 to 128 characters) */
+            deviceSecret: string;
+            /** Format: uuid */
+            requestId: string;
         };
         /** @enum {string} */
-        Role: "ASOCIADO" | "ADMIN" | "SPOC_ADMIN" | "LIDER" | "SPOC_EDIFICIO";
+        Role: "ASOCIADO" | "ADMIN" | "SPOC_ADMIN" | "LIDER" | "SPOC_EDIFICIO" | "SUPERADMIN";
         CurrentUserResponseDto: {
             /** Format: uuid */
             id: string;
@@ -716,14 +847,19 @@ export interface components {
             roles: components["schemas"]["Role"][];
             spocBuildingIds: string[];
         };
-        GoogleSessionResponseDto: {
+        DeviceSessionResponseDto: {
             accessToken: string;
             /** @example Bearer */
             tokenType: string;
             /** @description Seconds until the token expires */
             expiresIn: number;
             user: components["schemas"]["CurrentUserResponseDto"];
-            googleWorkspaceDomain?: string | null;
+            /** @description Single use: replace it with the one returned by the next refresh */
+            refreshToken: string;
+        };
+        RefreshDto: {
+            /** @description Refresh token of the approved device */
+            refreshToken: string;
         };
         DemoLoginDto: {
             /**
@@ -741,25 +877,66 @@ export interface components {
             expiresIn: number;
             user: components["schemas"]["CurrentUserResponseDto"];
         };
+        DeviceResponseDto: {
+            /** Format: uuid */
+            id: string;
+            label: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            lastUsedAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            revokedAt: string | null;
+        };
+        ActiveSanctionResponseDto: {
+            /** Format: uuid */
+            id: string;
+            reason: string;
+            /** Format: date-time */
+            startDate: string;
+        };
+        MeResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: email */
+            email: string;
+            fullName: string;
+            roles: components["schemas"]["Role"][];
+            spocBuildingIds: string[];
+            activeSanction: components["schemas"]["ActiveSanctionResponseDto"] | null;
+        };
+        RoleResponseDto: {
+            id: number;
+            name: components["schemas"]["Role"];
+        };
+        UserRoleResponseDto: {
+            role: components["schemas"]["Role"];
+            /** Format: uuid */
+            buildingId: string | null;
+            building: string | null;
+        };
+        UserResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: email */
+            email: string;
+            fullName: string;
+            department: string | null;
+            isActive: boolean;
+            /** Format: date-time */
+            lastLoginAt: string | null;
+            roles: components["schemas"]["UserRoleResponseDto"][];
+        };
         RoleAssignmentDto: {
             /** @enum {string} */
-            role: "ASOCIADO" | "ADMIN" | "SPOC_ADMIN" | "LIDER" | "SPOC_EDIFICIO";
+            role: "ASOCIADO" | "ADMIN" | "SPOC_ADMIN" | "LIDER" | "SPOC_EDIFICIO" | "SUPERADMIN";
             /**
              * Format: uuid
              * @description Required for SPOC_EDIFICIO: the building it manages
              */
             buildingId?: string;
-        };
-        CreateUserDto: {
-            /**
-             * Format: email
-             * @description Corporate email used to sign in
-             */
-            email: string;
-            /** @description Defaults to ASOCIADO when omitted */
-            roles?: components["schemas"]["RoleAssignmentDto"][];
-            fullName: string;
-            department?: string;
         };
         UpdateUserDto: {
             /** @description false deactivates the user, who can no longer sign in */
@@ -767,6 +944,74 @@ export interface components {
             /** @description Replaces every role of the user */
             roles?: components["schemas"]["RoleAssignmentDto"][];
             department?: string;
+        };
+        ManagedAssociateResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: email */
+            email: string;
+            fullName: string;
+            department: string | null;
+        };
+        ReplaceManagedAssociatesDto: {
+            /** @description Replaces the whole list of associates in charge */
+            associateIds: string[];
+        };
+        CreateAccessRequestDto: {
+            /** @description Random secret generated by the browser (base64url, 43 to 128 characters) */
+            deviceSecret: string;
+            /**
+             * Format: email
+             * @example nombre@tcs.com
+             */
+            email: string;
+            fullName: string;
+            department?: string;
+            /** @description Browser and system, shown to the SUPERADMIN */
+            deviceLabel?: string;
+        };
+        AccessRequestCreatedResponseDto: {
+            /** Format: uuid */
+            requestId: string;
+        };
+        /** @enum {string} */
+        AccessRequestStatus: "PENDING" | "APPROVED" | "REJECTED";
+        AccessRequestStatusResponseDto: {
+            status: components["schemas"]["AccessRequestStatus"];
+            decisionComment: string | null;
+        };
+        /** @enum {string} */
+        AccessRequestKind: "NEW_USER" | "NEW_DEVICE";
+        AccessRequestResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: email */
+            email: string;
+            fullName: string;
+            department: string | null;
+            kind: components["schemas"]["AccessRequestKind"];
+            status: components["schemas"]["AccessRequestStatus"];
+            deviceLabel: string | null;
+            /** Format: date-time */
+            requestedAt: string;
+            /** Format: date-time */
+            decidedAt: string | null;
+            decidedByName: string | null;
+            decisionComment: string | null;
+        };
+        AccessRequestPageResponseDto: {
+            total: number;
+            page: number;
+            pageSize: number;
+            items: components["schemas"]["AccessRequestResponseDto"][];
+        };
+        ApproveAccessRequestDto: {
+            /** @description Roles of a new user (defaults to ASOCIADO). Not allowed for an existing user */
+            roles?: components["schemas"]["RoleAssignmentDto"][];
+        };
+        RejectAccessRequestDto: {
+            /** @description Reason shown to the person who asked for access */
+            comment: string;
         };
         BuildingResponseDto: {
             /** Format: uuid */
@@ -1147,21 +1392,25 @@ export interface operations {
             };
         };
     };
-    AuthController_config: {
+    AuthController_deviceSession: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessRequestStatusQueryDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuthConfigResponseDto"];
+                    "application/json": components["schemas"]["DeviceSessionResponseDto"];
                 };
             };
             /** @description Error */
@@ -1193,6 +1442,15 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1202,7 +1460,7 @@ export interface operations {
             };
         };
     };
-    AuthController_google: {
+    AuthController_refresh: {
         parameters: {
             query?: never;
             header?: never;
@@ -1211,7 +1469,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["GoogleLoginDto"];
+                "application/json": components["schemas"]["RefreshDto"];
             };
         };
         responses: {
@@ -1220,7 +1478,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["GoogleSessionResponseDto"];
+                    "application/json": components["schemas"]["DeviceSessionResponseDto"];
                 };
             };
             /** @description Error */
@@ -1252,6 +1510,81 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AuthController_logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefreshDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1318,6 +1651,109 @@ export interface operations {
                     "application/json": components["schemas"]["ApiErrorResponseDto"];
                 };
             };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    DevicesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceResponseDto"][];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    DevicesController_revoke: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
         };
     };
     UsersController_me: {
@@ -1333,7 +1769,54 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["MeResponseDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
             };
         };
     };
@@ -1351,7 +1834,52 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["RoleResponseDto"][];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
                 };
             };
         };
@@ -1369,29 +1897,53 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"][];
+                };
             };
-        };
-    };
-    UsersController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateUserDto"];
-            };
-        };
-        responses: {
-            201: {
+            /** @description Error */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
                 };
             };
         };
@@ -1416,7 +1968,561 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["UserResponseDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ManagedAssociatesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagedAssociateResponseDto"][];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ManagedAssociatesController_replace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceManagedAssociatesDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagedAssociateResponseDto"][];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AccessRequestsController_list: {
+        parameters: {
+            query?: {
+                /** @description Page number, starting at 1 */
+                page?: number;
+                /** @description Items per page (maximum 100) */
+                pageSize?: number;
+                status?: components["schemas"]["AccessRequestStatus"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessRequestPageResponseDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AccessRequestsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAccessRequestDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessRequestCreatedResponseDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AccessRequestsController_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessRequestStatusQueryDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessRequestStatusResponseDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AccessRequestsController_approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApproveAccessRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessRequestResponseDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    AccessRequestsController_reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectAccessRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessRequestResponseDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
                 };
             };
         };

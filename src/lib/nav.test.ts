@@ -40,7 +40,12 @@ describe('navForRoles', () => {
     'gives the catalog administration screens to %s',
     (role) => {
       expect(hrefs([role])).toEqual(
-        expect.arrayContaining(['/admin/buildings', '/admin/resources', '/admin/catalog']),
+        expect.arrayContaining([
+          '/admin/buildings',
+          '/admin/resources',
+          '/admin/catalog',
+          '/admin/operating-hours',
+        ]),
       );
     },
   );
@@ -48,6 +53,7 @@ describe('navForRoles', () => {
   it('keeps the catalog administration away from associates', () => {
     expect(hrefs(['ASOCIADO', 'LIDER'])).not.toContain('/admin/buildings');
     expect(canOpen(['ASOCIADO'], '/admin/catalog')).toBe(false);
+    expect(canOpen(['ASOCIADO'], '/admin/operating-hours')).toBe(false);
   });
 
   it('is empty without roles', () => {

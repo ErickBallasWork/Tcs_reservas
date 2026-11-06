@@ -475,3 +475,47 @@ export const myReservationsLabels = {
       ? `Se cancelaron ${cancelled} reservas. ${kept} se conservan porque empiezan en menos de 24 horas.`
       : `Se cancelaron ${cancelled} reservas.`,
 };
+
+export const weekdayFullLabels = [
+  'Domingo',
+  'Lunes',
+  'Martes',
+  'Miércoles',
+  'Jueves',
+  'Viernes',
+  'Sábado',
+];
+
+export const operatingHoursLabels = {
+  scope: 'Horario de',
+  global: 'Todos los recursos (horario global)',
+  source: {
+    OWN: 'Este recurso tiene su propio horario.',
+    PARENT: 'Usa el horario de su laboratorio. Si guardas, tendrá el suyo.',
+    GLOBAL: 'Usa el horario global. Si guardas, tendrá el suyo.',
+    ALWAYS_OPEN: 'Sin horario definido: se puede reservar todos los días a toda hora.',
+  },
+  loading: 'Cargando horario…',
+  retry: 'Reintentar',
+  closedDay: 'Cerrado',
+  addWindow: 'Agregar horario',
+  removeWindow: 'Quitar',
+  opens: 'Apertura',
+  closes: 'Cierre',
+  invalid:
+    'Revisa los horarios: el cierre debe ser posterior a la apertura y no pueden traslaparse.',
+  save: 'Guardar horario',
+  saving: 'Guardando…',
+  saved: 'Horario guardado.',
+  removeOwn: 'Quitar horario propio',
+  removeGlobal: 'Quitar horario (24×7)',
+  closedDatesTitle: 'Días cerrados',
+  closedDate: 'Fecha',
+  closedName: 'Motivo (por ejemplo, feriado)',
+  closedScope: 'Aplica a',
+  allResources: 'Todos los recursos',
+  closeDay: 'Cerrar día',
+  closedDateRequired: 'Indica la fecha y un motivo.',
+  noClosedDates: 'No hay días cerrados próximos.',
+  reopen: 'Reabrir',
+};

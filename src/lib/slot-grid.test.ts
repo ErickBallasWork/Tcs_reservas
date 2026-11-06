@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildCells, findRangeConflict, freeRanges, slotStartsBetween } from '@/lib/slot-grid';
+import {
+  buildCells,
+  findRangeConflict,
+  freeRanges,
+  slotStartsBetween,
+  withoutRange,
+} from '@/lib/slot-grid';
 
 const open = [{ start: '2026-11-12T13:00:00.000Z', end: '2026-11-12T23:00:00.000Z' }];
 
@@ -88,5 +94,21 @@ describe('findRangeConflict', () => {
 
   it('ignores an invalid range', () => {
     expect(findRangeConflict('2026-11-12T15:00:00Z', '2026-11-12T14:00:00Z', sources)).toBeNull();
+  });
+});
+
+describe('withoutRange', () => {
+  it('drops the slots that belong to the range, end excluded', () => {
+    const slots = [
+      '2026-11-12T14:30:00.000Z',
+      '2026-11-12T15:00:00.000Z',
+      '2026-11-12T15:30:00.000Z',
+      '2026-11-12T16:00:00.000Z',
+    ];
+
+    expect(withoutRange(slots, '2026-11-12T15:00:00Z', '2026-11-12T16:00:00Z')).toEqual([
+      '2026-11-12T14:30:00.000Z',
+      '2026-11-12T16:00:00.000Z',
+    ]);
   });
 });

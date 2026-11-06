@@ -82,3 +82,12 @@ export function findRangeConflict(
   }
   return null;
 }
+
+export function withoutRange(slots: readonly string[], start: string, end: string): string[] {
+  const startMs = new Date(start).getTime();
+  const endMs = new Date(end).getTime();
+  return slots.filter((slot) => {
+    const slotMs = new Date(slot).getTime();
+    return slotMs < startMs || slotMs >= endMs;
+  });
+}

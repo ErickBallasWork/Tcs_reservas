@@ -1,77 +1,101 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { format, parseISO } from 'date-fns';
+import { addMonths, format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { messageForError } from '@/api/error-messages';
 import { MonthCalendar, WeekStrip } from '@/components/shared/MonthCalendar';
-import { SlotCell } from '@/components/shared/SlotCell';
 import { Tag } from '@/components/shared/Tag';
-import { BookingForm } from '@/features/booking/BookingForm';
-import {
-  DEFAULT_DATE,
-  FIRST_SELECTABLE_DATE,
-  getDaysWithReservations,
-  getSlotStatus,
-} from '@/lib/availability';
-import { buildings, resources } from '@/lib/mock-data';
-import type { ResourceType, SlotStatus } from '@/types';
+import { ResourceAvailabilityCard } from '@/features/availability/ResourceAvailabilityCard';
+import { SlotLegend } from '@/features/availability/SlotRow';
+import { BookingDialog } from '@/features/booking/BookingDialog';
+import { useCatalogTree } from '@/features/catalog/useCatalogTree';
+import { useMyReservations } from '@/features/reservations/useReservations';
+import type { BookingInitial } from '@/lib/booking-form';
+import { firstBookableDate, formatDay, toLocal } from '@/lib/booking-time';
+import { availabilityLabels as labels } from '@/lib/labels';
+import { slotStartsBetween, type TimeRange } from '@/lib/slot-grid';
 
-const HOUR_RANGES = [
-  { value: 'morning', label: '08:00–13:00', hours: [8, 9, 10, 11, 12] },
-  { value: 'afternoon', label: '13:00–18:00', hours: [13, 14, 15, 16, 17] },
-];
+const ACTIVE_STATUSES = ['PENDING_APPROVAL', 'CONFIRMED', 'CHECKED_IN'];
+const HOUR_MINUTES = 60;
 
-const TYPE_ORDER: Record<ResourceType, number> = {
-  room: 0,
-  ai_lab: 1,
-  laptop: 2,
-};
-
-const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`;
-
-const mobileTagVariant: Record<SlotStatus, 'default' | 'dark' | 'gold'> = {
-  free: 'default',
-  occupied: 'dark',
-  blocked: 'gold',
-};
+function addMinutes(time: string, minutes: number): string {
+  const [hours, mins] = time.split(':').map(Number);
+  const total = Math.min(hours * 60 + mins + minutes, 23 * 60 + 30);
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
 
 export function AvailabilityView() {
-  const [date, setDate] = useState(DEFAULT_DATE);
-  const [buildingId, setBuildingId] = useState('b-a');
-  const [rangeValue, setRangeValue] = useState('morning');
+  const firstDate = useMemo(() => firstBookableDate(), []);
+  const [date, setDate] = useState(firstDate);
+  const [month, setMonth] = useState(firstDate.slice(0, 7));
+  const [buildingId, setBuildingId] = useState('');
+  const [rangeValue, setRangeValue] = useState(labels.ranges[0].value);
   const [minCapacity, setMinCapacity] = useState('');
+  const [booking, setBooking] = useState<BookingInitial | null>(null);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const tree = useCatalogTree();
+  const mine = useMyReservations({ page: 1, pageSize: 100, from: new Date().toISOString() });
 
-  const markedDates = useMemo(() => getDaysWithReservations(), []);
-  const activeBuildings = buildings.filter((b) => b.active);
-  const hours = HOUR_RANGES.find((r) => r.value === rangeValue)!.hours;
+  const buildings = useMemo(() => (tree.data ?? []).filter((b) => b.isActive), [tree.data]);
+  const activeBuilding = buildings.find((b) => b.id === buildingId) ?? buildings[0];
+  const range = labels.ranges.find((r) => r.value === rangeValue) ?? labels.ranges[0];
+  const slotStarts = useMemo(
+    () => slotStartsBetween(date, range.from, range.to),
+    [date, range.from, range.to],
+  );
 
-  const rows = useMemo(() => {
+  const markedDates = useMemo(
+    () =>
+      new Set(
+        (mine.data?.items ?? [])
+          .filter((item) => ACTIVE_STATUSES.includes(item.status))
+          .map((item) => toLocal(item.startDateTime).date),
+      ),
+    [mine.data],
+  );
+
+  const resources = useMemo(() => {
     const min = Number(minCapacity) || 0;
-    return resources
-      .filter(
-        (r) =>
-          r.active &&
-          r.buildingId === buildingId &&
-          (r.type === 'laptop' || (r.capacity ?? 0) >= min),
-      )
-      .sort((a, b) => TYPE_ORDER[a.type] - TYPE_ORDER[b.type]);
-  }, [buildingId, minCapacity]);
+    return (activeBuilding?.resources ?? []).filter(
+      (resource) => resource.isActive && resource.capacity >= min,
+    );
+  }, [activeBuilding, minCapacity]);
 
-  const rawTitle = format(parseISO(date), "EEEE d 'de' MMMM", { locale: es });
-  const dateTitle = rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1);
+  const monthDate = parseISO(`${month}-01`);
+  const monthTitle = format(monthDate, 'MMMM yyyy', { locale: es });
+  const shiftMonth = (delta: number) => setMonth(format(addMonths(monthDate, delta), 'yyyy-MM'));
+
+  const handleReserve = (resourceId: string | undefined, picked?: TimeRange) => {
+    const startTime = picked ? toLocal(picked.start).time : range.from;
+    const pickedEnd = picked ? toLocal(picked.end).time : null;
+    const minimumEnd = addMinutes(startTime, HOUR_MINUTES);
+    setBooking({
+      resourceId,
+      date,
+      startTime,
+      endTime: pickedEnd && pickedEnd > minimumEnd ? pickedEnd : minimumEnd,
+    });
+  };
 
   const calendarProps = {
     selected: date,
     markedDates,
-    firstSelectableDate: FIRST_SELECTABLE_DATE,
-    onSelect: setDate,
+    firstSelectableDate: firstDate,
+    onSelect: (next: string) => {
+      setDate(next);
+      setMonth(next.slice(0, 7));
+    },
   };
 
   const buildingSelect = (
-    <select className="field" value={buildingId} onChange={(e) => setBuildingId(e.target.value)}>
-      {activeBuildings.map((b) => (
+    <select
+      className="field"
+      value={activeBuilding?.id ?? ''}
+      onChange={(event) => setBuildingId(event.target.value)}
+    >
+      {buildings.map((b) => (
         <option key={b.id} value={b.id}>
           {b.name}
         </option>
@@ -79,34 +103,94 @@ export function AvailabilityView() {
     </select>
   );
 
-  const openModal = () => setIsModalOpen(true);
+  if (tree.isPending) {
+    return (
+      <p role="status" className="flex items-center gap-2">
+        <span className="spinner" aria-hidden />
+        {labels.loading}
+      </p>
+    );
+  }
+
+  if (tree.isError) {
+    return (
+      <div role="alert" className="alert flex flex-wrap items-center justify-between gap-2">
+        <span>{messageForError(tree.error)}</span>
+        <button type="button" className="btn btn-outline" onClick={() => void tree.refetch()}>
+          {labels.retry}
+        </button>
+      </div>
+    );
+  }
+
+  const cards = (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-base font-bold text-brand">{formatDay(date)}</h2>
+        <SlotLegend />
+      </div>
+      {resources.map((resource) => (
+        <ResourceAvailabilityCard
+          key={resource.id}
+          resource={resource}
+          date={date}
+          slotStarts={slotStarts}
+          onReserve={handleReserve}
+        />
+      ))}
+      {resources.length === 0 && <small className="text-ink-soft">{labels.noResources}</small>}
+      <small className="hidden text-ink-soft md:block">{labels.freeRangeHint}</small>
+    </div>
+  );
 
   return (
     <>
       <div className="hidden gap-4 md:grid md:grid-cols-[300px_1fr]">
-        <div className="panel flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-base font-bold text-brand">Noviembre 2026</h2>
-            <Tag variant="gold">Con reservas</Tag>
+        <div className="panel flex flex-col gap-3 self-start">
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              aria-label={labels.previousMonth}
+              className="grid size-11 place-items-center rounded-lg hover:bg-soft"
+              onClick={() => shiftMonth(-1)}
+            >
+              <ChevronLeft className="size-5" aria-hidden />
+            </button>
+            <h2 className="text-base font-bold text-brand capitalize">{monthTitle}</h2>
+            <button
+              type="button"
+              aria-label={labels.nextMonth}
+              className="grid size-11 place-items-center rounded-lg hover:bg-soft"
+              onClick={() => shiftMonth(1)}
+            >
+              <ChevronRight className="size-5" aria-hidden />
+            </button>
           </div>
-          <MonthCalendar year={2026} month={10} {...calendarProps} />
-          <small className="text-ink-soft">Elige el día; solo desde mañana en adelante.</small>
+          <Tag variant="gold" className="self-start">
+            {labels.hasReservations}
+          </Tag>
+          <MonthCalendar
+            year={monthDate.getFullYear()}
+            month={monthDate.getMonth()}
+            {...calendarProps}
+          />
+          <small className="text-ink-soft">{labels.pickDay}</small>
         </div>
 
         <div className="flex flex-col gap-3">
-          <div className="panel flex items-center gap-3">
+          <div className="panel flex items-end gap-3">
             <label className="field-label flex-1">
-              Edificio
+              {labels.building}
               {buildingSelect}
             </label>
             <label className="field-label flex-1">
-              Hora
+              {labels.timeRange}
               <select
                 className="field"
                 value={rangeValue}
-                onChange={(e) => setRangeValue(e.target.value)}
+                onChange={(event) => setRangeValue(event.target.value)}
               >
-                {HOUR_RANGES.map((r) => (
+                {labels.ranges.map((r) => (
                   <option key={r.value} value={r.value}>
                     {r.label}
                   </option>
@@ -114,116 +198,55 @@ export function AvailabilityView() {
               </select>
             </label>
             <label className="field-label flex-1">
-              Capacidad
+              {labels.capacity}
               <input
                 className="field"
                 type="number"
                 min={1}
-                placeholder="Cualquiera"
+                placeholder={labels.anyCapacity}
                 value={minCapacity}
-                onChange={(e) => setMinCapacity(e.target.value)}
+                onChange={(event) => setMinCapacity(event.target.value)}
               />
             </label>
+            <button type="button" className="btn btn-gold" onClick={() => handleReserve(undefined)}>
+              {labels.reserve}
+            </button>
           </div>
-
-          <div className="panel flex flex-col gap-3">
-            <h2 className="text-base font-bold text-brand">{dateTitle}</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    <th className="border-b-2 border-line p-2 text-left text-xs text-ink-soft uppercase">
-                      Recurso
-                    </th>
-                    {hours.map((h) => (
-                      <th
-                        key={h}
-                        className="border-b-2 border-line p-2 text-left text-xs text-ink-soft uppercase"
-                      >
-                        {hourLabel(h)}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((r) => (
-                    <tr key={r.id}>
-                      <td className="border-b border-soft px-2 py-1.5 whitespace-nowrap">
-                        {r.type === 'ai_lab' ? `${r.name} (completo)` : r.name}
-                      </td>
-                      {hours.map((h) => (
-                        <td key={h} className="border-b border-soft px-2 py-1.5">
-                          <SlotCell status={getSlotStatus(r, date, h)} />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="flex items-center gap-3">
-              <Tag>Libre</Tag>
-              <Tag variant="dark">Ocupado</Tag>
-              <Tag variant="gold">Bloqueado por laboratorio</Tag>
-              <span className="flex-1" />
-              <button type="button" onClick={openModal} className="btn btn-gold">
-                Reservar
-              </button>
-            </div>
-          </div>
+          {cards}
         </div>
       </div>
 
       <div className="flex flex-col gap-3 md:hidden">
         <div className="flex items-start justify-between gap-3">
-          <b>Noviembre 2026</b>
-          <Tag variant="gold">Con reservas</Tag>
+          <b className="capitalize">{monthTitle}</b>
+          <Tag variant="gold">{labels.hasReservations}</Tag>
         </div>
         <WeekStrip {...calendarProps} />
         <label className="field-label">
-          Edificio
+          {labels.building}
           {buildingSelect}
         </label>
-        {rows.map((r) => (
-          <div key={r.id} className="panel flex flex-col gap-3">
-            <b>{r.name}</b>
-            <div className="flex flex-wrap items-center gap-3">
-              {hours.map((h) => (
-                <Tag key={h} variant={mobileTagVariant[getSlotStatus(r, date, h)]}>
-                  {hourLabel(h)}
-                </Tag>
-              ))}
-            </div>
-            <button type="button" onClick={openModal} className="btn btn-gold">
-              Reservar
-            </button>
-            {r.type === 'laptop' && (
-              <small className="text-ink-soft">Amarillo: bloqueada por laboratorio completo.</small>
-            )}
-          </div>
-        ))}
-        {rows.length === 0 && (
-          <small className="text-ink-soft">No hay recursos con esos filtros.</small>
-        )}
+        <label className="field-label">
+          {labels.timeRange}
+          <select
+            className="field"
+            value={rangeValue}
+            onChange={(event) => setRangeValue(event.target.value)}
+          >
+            {labels.ranges.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {cards}
+        <button type="button" className="btn btn-gold" onClick={() => handleReserve(undefined)}>
+          {labels.reserve}
+        </button>
       </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 backdrop-blur-sm sm:p-4">
-          <div className="panel relative max-h-[95vh] w-full max-w-[95vw] overflow-y-auto bg-white p-6 shadow-xl sm:max-w-7xl">
-            <div className="mb-4 flex items-center justify-between border-b border-line pb-3">
-              <h3 className="text-lg font-bold text-brand">Nueva reserva</h3>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="text-sm font-bold text-ink-soft hover:text-brand"
-              >
-                ✕ Cerrar
-              </button>
-            </div>
-            <BookingForm />
-          </div>
-        </div>
-      )}
+      {booking && <BookingDialog initial={booking} onClose={() => setBooking(null)} />}
     </>
   );
 }

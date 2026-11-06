@@ -1,5 +1,11 @@
-import type { ResourceType as ApiResourceType, Role } from '@/api/types';
+import type {
+  ReservationPurpose,
+  ReservationStatus as ApiReservationStatus,
+  ResourceType as ApiResourceType,
+  Role,
+} from '@/api/types';
 import type { ReservationReason, ReservationStatus, ResourceType } from '@/types';
+import type { BookingProblem } from '@/lib/booking-checks';
 
 export const appLabels = {
   title: 'Reservas TCS · Banco Pichincha',
@@ -302,4 +308,139 @@ export const catalogAdminLabels = {
       CHECKED_IN: 'En uso',
     } as Record<string, string>,
   },
+};
+
+export const purposeLabels: Record<ReservationPurpose, string> = {
+  INTERNAL_MEETING: 'Reunión interna',
+  CLIENT_MEETING: 'Reunión con cliente',
+  TRAINING: 'Entrenamiento',
+};
+
+export const reservationStatusLabels: Record<ApiReservationStatus, string> = {
+  PENDING_APPROVAL: 'Pendiente',
+  CONFIRMED: 'Confirmada',
+  REJECTED: 'Rechazada',
+  CANCELLED: 'Cancelada',
+  CHECKED_IN: 'En uso',
+  NO_SHOW: 'Inasistencia',
+};
+
+export const weekdayShortLabels = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+export const bookingProblemMessages: Record<BookingProblem, string> = {
+  END_BEFORE_START: 'La hora de fin debe ser posterior a la de inicio.',
+  NOT_ALIGNED: 'Las horas deben coincidir con franjas de 30 minutos.',
+  MIN_ADVANCE: 'Se requiere al menos 24 horas de anticipación.',
+  MAX_DURATION: 'La duración máxima continua es de 48 horas.',
+  EDIT_TOO_LATE:
+    'Faltan menos de 24 horas para la reserva original: solo puedes cambiar el detalle, el motivo o los asistentes.',
+  MISSING_PURPOSE: 'Elige un motivo.',
+  MISSING_DETAIL: 'Escribe el detalle o la justificación.',
+  ATTENDEES_REQUIRED: 'Indica cuántas personas asistirán.',
+  ATTENDEES_EXCEEDS_CAPACITY: 'Los asistentes superan la capacidad del recurso.',
+};
+
+export const availabilityLabels = {
+  building: 'Edificio',
+  timeRange: 'Horario',
+  capacity: 'Capacidad mínima',
+  anyCapacity: 'Cualquiera',
+  ranges: [
+    { value: 'morning', label: '08:00–13:00', from: '08:00', to: '13:00' },
+    { value: 'afternoon', label: '13:00–18:00', from: '13:00', to: '18:00' },
+    { value: 'evening', label: '18:00–22:00', from: '18:00', to: '22:00' },
+  ],
+  hasReservations: 'Con mis reservas',
+  pickDay: 'Elige el día; solo desde mañana en adelante.',
+  previousMonth: 'Mes anterior',
+  nextMonth: 'Mes siguiente',
+  free: 'Libre',
+  occupied: 'Ocupado',
+  blocked: 'Bloqueado por laboratorio',
+  closed: 'Fuera de horario',
+  reserve: 'Reservar',
+  newReservation: 'Nueva reserva',
+  noFreeSlots: 'Sin horarios libres en este rango.',
+  noResources: 'No hay recursos con esos filtros.',
+  loading: 'Cargando disponibilidad…',
+  retry: 'Reintentar',
+  labFull: (name: string) => `${name} (completo)`,
+  laptops: (count: number) => `${count} ${count === 1 ? 'laptop' : 'laptops'}`,
+  laptopsToggle: 'Ver laptops',
+  freeRangeHint: 'Toca un horario libre para reservarlo.',
+  blockedHint: 'Amarillo: la laptop está bloqueada por una reserva del laboratorio completo.',
+};
+
+export const bookingLabels = {
+  createTitle: 'Nueva reserva',
+  editTitle: 'Editar reserva',
+  noResources: 'Todavía no hay recursos reservables.',
+  loading: 'Cargando recursos…',
+  retry: 'Reintentar',
+  resource: 'Recurso',
+  groups: {
+    MEETING_ROOM: 'Salas de reuniones',
+    AI_LAB: 'Laboratorios de IA (completo)',
+    LAPTOP: 'Laptops de IA',
+  },
+  startDate: 'Fecha de inicio',
+  startTime: 'Hora de inicio',
+  endDate: 'Fecha de fin',
+  endTime: 'Hora de fin',
+  purpose: 'Motivo',
+  choosePurpose: 'Selecciona un motivo',
+  detail: 'Detalle / justificación',
+  attendees: 'Asistentes',
+  attendeesMax: (capacity: number) => `Máximo ${capacity}`,
+  repeat: 'Repetir cada semana',
+  repeatEvery: 'Frecuencia',
+  everyWeeks: (n: number) => (n === 1 ? 'Cada semana' : `Cada ${n} semanas`),
+  weekdays: 'Días de la semana',
+  limit: 'Termina',
+  limitCount: 'Después de un número de reservas',
+  limitUntil: 'En una fecha',
+  occurrenceCount: 'Número de reservas',
+  until: 'Hasta el',
+  preview: 'Ver fechas',
+  previewing: 'Revisando…',
+  previewTitle: 'Fechas de la serie',
+  previewAvailable: 'Disponible',
+  previewSummary: (available: number, total: number) =>
+    `${available} de ${total} fechas están disponibles. Las demás se omitirán.`,
+  submit: 'Solicitar reserva',
+  submitSeries: 'Solicitar serie',
+  submitEdit: 'Guardar cambios',
+  sending: 'Enviando…',
+  validations: 'Validaciones',
+  ruleAdvance: 'Al menos 24 horas de anticipación',
+  ruleDuration: 'Máximo 48 horas continuas',
+  ruleSlot: 'Dentro del horario y sin choques',
+  ruleAttendees: 'Asistentes dentro de la capacidad',
+  trainingHint: 'Entrenamiento requiere aprobación del Líder.',
+  conflicts: {
+    SLOT_TAKEN: 'La franja se cruza con otra reserva.',
+    OUTSIDE_OPERATING_HOURS: 'La franja está fuera del horario en que se puede reservar.',
+  },
+  errorTitle: 'No se pudo solicitar la reserva',
+  errorDescription: 'Corrige lo siguiente e inténtalo de nuevo.',
+  understood: 'Entendido',
+  successTitle: 'Reserva confirmada',
+  successPendingTitle: 'Solicitud enviada',
+  successDescription: 'Tu reserva quedó registrada. Puedes verla en Mis reservas.',
+  successPendingDescription:
+    'Tu entrenamiento quedó pendiente de aprobación del Líder de Conocimiento. El espacio queda bloqueado mientras se decide.',
+  editedTitle: 'Reserva actualizada',
+  editedPendingTitle: 'Reserva pendiente de aprobación',
+  editedDescription: 'Los cambios quedaron guardados.',
+  editedPendingDescription:
+    'Por el cambio, el Líder de Conocimiento debe aprobar la reserva de nuevo. El espacio queda bloqueado mientras se decide.',
+  seriesTitle: (created: number) =>
+    `${created} ${created === 1 ? 'reserva creada' : 'reservas creadas'}`,
+  seriesPendingNote: 'Cada reserva de entrenamiento espera su propia aprobación del Líder.',
+  seriesSkipped: (count: number) =>
+    `${count} ${count === 1 ? 'fecha se omitió' : 'fechas se omitieron'}:`,
+  makeAnother: 'Hacer otra reserva',
+  viewMine: 'Ver mis reservas',
+  close: 'Cerrar',
+  summary: { resource: 'Recurso', start: 'Inicio', end: 'Fin', purpose: 'Motivo' },
 };

@@ -101,3 +101,7 @@ export function messageForError(error: unknown): string {
   if (error instanceof ApiError) return errorMessages[error.code];
   return errorMessages.UNKNOWN_ERROR;
 }
+
+export function messageForCode(code: string): string {
+  return code in errorMessages ? errorMessages[code as ApiErrorCode] : errorMessages.UNKNOWN_ERROR;
+}

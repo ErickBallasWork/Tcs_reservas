@@ -1,8 +1,13 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/_next/*", "/*.{png,jpg,jpeg,gif,svg,ico,webp,css,js,json,txt,map,woff,woff2}"]
+    "exclude": [
+      "/_next/*",
+      "/*.{png,jpg,jpeg,gif,svg,ico,webp,css,js,json,webmanifest,txt,map,woff,woff2}",
+      "/icons/*"
+    ]
   },
+  "routes": [{ "route": "/sw.js", "headers": { "Cache-Control": "no-cache" } }],
   "responseOverrides": {
     "404": { "rewrite": "/404.html" }
   },
@@ -12,6 +17,7 @@
     "Referrer-Policy": "strict-origin-when-cross-origin"
   },
   "mimeTypes": {
-    ".json": "application/json"
+    ".json": "application/json",
+    ".webmanifest": "application/manifest+json"
   }
 }

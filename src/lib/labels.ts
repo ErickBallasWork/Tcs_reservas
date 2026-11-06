@@ -9,6 +9,7 @@ import type { ReallocationProblem } from '@/lib/reallocation-form';
 
 export const appLabels = {
   title: 'Reservas TCS · Banco Pichincha',
+  shortTitle: 'Reservas',
   description: 'Reserva de salas de reuniones, laboratorios y laptops de IA',
 };
 
@@ -113,7 +114,7 @@ export const authLabels = {
 };
 
 export const notificationPermissionLabels = {
-  banner: 'Activa las notificaciones para enterarte de tus reservas.',
+  banner: 'Activa las notificaciones para enterarte de tus reservas, también con la app cerrada.',
   enable: 'Activar',
   seeSteps: 'Ver cómo',
   understood: 'Entendido',

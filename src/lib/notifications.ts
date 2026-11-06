@@ -26,7 +26,7 @@ export async function requestPermission(): Promise<PermissionState> {
   }
 }
 
-async function getRegistration() {
+export async function getServiceWorkerRegistration() {
   if (!('serviceWorker' in navigator)) return null;
   try {
     await navigator.serviceWorker.register('/sw.js');
@@ -40,7 +40,7 @@ export async function showSystemNotification(title: string, body: string) {
   if (getPermissionState() !== 'granted') return false;
   const options: NotificationOptions = { body };
   try {
-    const registration = await getRegistration();
+    const registration = await getServiceWorkerRegistration();
     if (registration) {
       await registration.showNotification(title, options);
     } else {

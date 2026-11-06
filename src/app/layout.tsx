@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { AuthProvider } from '@/lib/auth';
@@ -18,6 +18,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: appLabels.title,
   description: appLabels.description,
+  manifest: '/manifest.webmanifest',
+  icons: { apple: '/icons/apple-touch-icon.png' },
+  appleWebApp: { capable: true, title: appLabels.shortTitle, statusBarStyle: 'default' },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0b3d91',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

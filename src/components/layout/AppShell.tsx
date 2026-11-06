@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { PermissionPrompt } from '@/features/notifications/PermissionPrompt';
 import { UnreadBadge } from '@/features/notifications/UnreadBadge';
+import { unregisterPush, usePushRegistration } from '@/features/notifications/usePushRegistration';
 import { useUnreadCount } from '@/features/notifications/useNotifications';
 import { SanctionBanner } from '@/features/sanctions/SanctionBanner';
 import { useAuth } from '@/lib/auth';
@@ -28,6 +29,7 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
   const router = useRouter();
   const [moreOpen, setMoreOpen] = useState(false);
   const unread = useUnreadCount();
+  usePushRegistration();
 
   const allowed = status === 'authenticated' && canOpen(roles, pathname);
 
@@ -59,7 +61,8 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
   const notificationsInOverflow = mobileMore.some((item) => item.href === NOTIFICATIONS_HREF);
   const roleSummary = roles.map((role) => roleLabels[role]).join(' · ');
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await unregisterPush();
     void logout();
     router.replace('/login');
   };
@@ -90,7 +93,7 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
         <div className="mt-auto flex flex-col gap-1.5 pt-4">
           <button
             type="button"
-            onClick={handleLogout}
+            onClick={() => void handleLogout()}
             className="flex min-h-11 cursor-pointer items-center rounded-lg px-3 text-left text-sm transition-colors hover:bg-white/10"
           >
             {authLabels.logout}
@@ -103,7 +106,7 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
           <span className="truncate">{mobileTitle ?? title}</span>
           <button
             type="button"
-            onClick={handleLogout}
+            onClick={() => void handleLogout()}
             aria-label={authLabels.logout}
             className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-white/10"
           >

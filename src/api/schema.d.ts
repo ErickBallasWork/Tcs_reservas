@@ -503,6 +503,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/operating-hours": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Horario semanal vigente, global o de un recurso (RF-17) */
+        get: operations["OperatingHoursController_read"];
+        /**
+         * Reemplazar el horario semanal global o de un recurso (RF-17)
+         * @description Una lista vacía quita el horario: el recurso hereda el del laboratorio o el global, y el global vuelve a 24×7.
+         */
+        put: operations["OperatingHoursController_replace"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/closed-dates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Días cerrados desde hoy (RF-17) */
+        get: operations["OperatingHoursController_listClosedDates"];
+        put?: never;
+        /** Cerrar un día, para todos los recursos o para uno (RF-17) */
+        post: operations["OperatingHoursController_createClosedDate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/closed-dates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Reabrir un día cerrado (RF-17) */
+        delete: operations["OperatingHoursController_deleteClosedDate"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/availability/search": {
         parameters: {
             query?: never;
@@ -632,14 +688,21 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Ver una reserva con sus aprobaciones, reasignaciones y check-in */
+        /**
+         * Ver una reserva con sus aprobaciones, reasignaciones y check-in
+         * @description Solo la ve su dueño, un ADMIN o SUPERADMIN, el SPOC de su edificio o quien la tenga a cargo.
+         */
         get: operations["ReservationsController_get"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Modificar o reprogramar mi reserva (RF-14)
+         * @description Cambia la franja, el recurso, el motivo, el detalle o los asistentes con las mismas reglas que crear. Mover la franja o el recurso exige 24 h de anticipación sobre la reserva original y sobre la nueva. Un entrenamiento aprobado vuelve a pendiente si cambia la franja o el recurso.
+         */
+        patch: operations["ReservationsController_update"];
         trace?: never;
     };
     "/api/v1/reservations/{id}/cancel": {
@@ -674,6 +737,80 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reservation-series/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ver qué fechas de una serie semanal están disponibles, sin reservar (RF-15) */
+        post: operations["ReservationSeriesController_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reservation-series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Crear una serie de reservas semanales (RF-15)
+         * @description Cada fecha se valida por separado: se crean las disponibles y las demás se informan en skipped. Si ninguna está disponible responde 409 SERIES_EMPTY. Una serie de Entrenamiento deja una aprobación por reserva.
+         */
+        post: operations["ReservationSeriesController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reservation-series/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ver una serie con todas sus reservas */
+        get: operations["ReservationSeriesController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reservation-series/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Cancelar las reservas que quedan de una serie (RF-15)
+         * @description Cancela las futuras con al menos 24 h de anticipación. Las que empiezan antes se conservan y se cuentan en kept. Para cancelar una sola fecha se usa la cancelación de la reserva.
+         */
+        patch: operations["ReservationSeriesController_cancel"];
         trace?: never;
     };
     "/api/v1/approvals/pending": {
@@ -834,7 +971,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /** @enum {string} */
-        ErrorCode: "ACCESS_REQUEST_COOLDOWN" | "ACCESS_REQUEST_NOT_APPROVED" | "ACCESS_REQUEST_NOT_FOUND" | "ACCESS_REQUEST_PENDING" | "ACCESS_REQUEST_REDEEMED" | "ALREADY_RESOLVED" | "ALREADY_STARTED" | "BAD_REQUEST" | "BUILDING_INACTIVE" | "BUILDING_NAME_TAKEN" | "BUILDING_NOT_ALLOWED" | "BUILDING_NOT_FOUND" | "BUILDING_REQUIRED" | "CANCEL_TOO_LATE" | "CANNOT_MANAGE_SELF" | "CAPACITY_REQUIRED" | "COMMENTS_REQUIRED" | "CONCURRENT_CONFLICT" | "CONFLICT" | "DATABASE_UNAVAILABLE" | "DEVICE_NOT_AUTHORIZED" | "DEVICE_NOT_FOUND" | "DOMAIN_NOT_ALLOWED" | "DUPLICATE" | "END_BEFORE_START" | "ERROR" | "FORBIDDEN" | "FORBIDDEN_ROLE" | "FORBIDDEN_ROLE_ASSIGNMENT" | "FOREIGN_KEY" | "HAS_FUTURE_RESERVATIONS" | "INVALID_DATE" | "INVALID_JOB_KEY" | "INVALID_RANGE" | "INVALID_TOKEN" | "LAB_REQUIRED" | "LAST_SUPERADMIN" | "MAX_DURATION" | "MIN_ADVANCE" | "NO_TOKEN" | "NOT_A_MANAGER" | "NOT_ALIGNED" | "NOT_CANCELLABLE" | "NOT_CHECKABLE" | "NOT_FOUND" | "NOT_OWNER" | "NOT_PENDING" | "NOT_REALLOCATABLE" | "NOT_YOUR_BUILDING" | "NOTHING_TO_CHANGE" | "NOTIFICATION_NOT_FOUND" | "ONLY_ROOMS" | "OUTSIDE_CHECKIN_WINDOW" | "PARENT_INACTIVE" | "PARENT_NOT_ALLOWED" | "RANGE_TOO_LONG" | "RESERVATION_NOT_FOUND" | "RESOURCE_INACTIVE" | "RESOURCE_NAME_TAKEN" | "RESOURCE_NOT_FOUND" | "ROLE_NOT_FOUND" | "SANCTION_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "SLOT_TAKEN" | "START_IN_PAST" | "TOO_MANY_REQUESTS" | "UNAUTHORIZED" | "UNKNOWN_USER" | "UNPROCESSABLE" | "USER_INACTIVE" | "USER_NOT_FOUND" | "USER_SANCTIONED" | "WRONG_RESOURCE_TYPE";
+        ErrorCode: "ACCESS_REQUEST_COOLDOWN" | "ACCESS_REQUEST_NOT_APPROVED" | "ACCESS_REQUEST_NOT_FOUND" | "ACCESS_REQUEST_PENDING" | "ACCESS_REQUEST_REDEEMED" | "ALREADY_RESOLVED" | "ALREADY_STARTED" | "ATTENDEES_EXCEEDS_CAPACITY" | "ATTENDEES_REQUIRED" | "BAD_REQUEST" | "BUILDING_INACTIVE" | "BUILDING_NAME_TAKEN" | "BUILDING_NOT_ALLOWED" | "BUILDING_NOT_FOUND" | "BUILDING_REQUIRED" | "CANCEL_TOO_LATE" | "CLOSED_DATE_NOT_FOUND" | "CANNOT_MANAGE_SELF" | "CAPACITY_REQUIRED" | "COMMENTS_REQUIRED" | "CONCURRENT_CONFLICT" | "CONFLICT" | "DATABASE_UNAVAILABLE" | "DEVICE_NOT_AUTHORIZED" | "DEVICE_NOT_FOUND" | "DOMAIN_NOT_ALLOWED" | "DUPLICATE" | "EDIT_TOO_LATE" | "END_BEFORE_START" | "ERROR" | "FORBIDDEN" | "FORBIDDEN_ROLE" | "FORBIDDEN_ROLE_ASSIGNMENT" | "FOREIGN_KEY" | "HAS_FUTURE_RESERVATIONS" | "INCOMPLETE_TIMES" | "INVALID_DATE" | "INVALID_OPERATING_HOURS" | "INVALID_JOB_KEY" | "INVALID_RANGE" | "INVALID_TOKEN" | "LAB_REQUIRED" | "LAST_SUPERADMIN" | "MAX_DURATION" | "MIN_ADVANCE" | "NO_TOKEN" | "NOT_A_MANAGER" | "NOT_ALIGNED" | "NOT_CANCELLABLE" | "NOT_CHECKABLE" | "NOT_EDITABLE" | "NOT_FOUND" | "NOT_OWNER" | "NOT_PENDING" | "NOT_REALLOCATABLE" | "NOT_YOUR_BUILDING" | "OUTSIDE_OPERATING_HOURS" | "NOTHING_TO_CHANGE" | "NOTIFICATION_NOT_FOUND" | "ONLY_ROOMS" | "OUTSIDE_CHECKIN_WINDOW" | "PARENT_INACTIVE" | "PARENT_NOT_ALLOWED" | "RANGE_TOO_LONG" | "RESERVATION_NOT_FOUND" | "RESOURCE_INACTIVE" | "RESOURCE_NAME_TAKEN" | "RESOURCE_NOT_FOUND" | "ROLE_NOT_FOUND" | "SANCTION_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "SERIES_EMPTY" | "SERIES_LIMIT_REQUIRED" | "SERIES_NOT_FOUND" | "SERIES_START_NOT_IN_WEEKDAYS" | "SERIES_TOO_LONG" | "SLOT_TAKEN" | "START_IN_PAST" | "TOO_MANY_REQUESTS" | "UNAUTHORIZED" | "UNKNOWN_USER" | "UNPROCESSABLE" | "USER_INACTIVE" | "USER_NOT_FOUND" | "USER_SANCTIONED" | "WRONG_RESOURCE_TYPE";
         ApiErrorResponseDto: {
             /** @example 404 */
             statusCode: number;
@@ -1225,6 +1362,113 @@ export interface components {
             createdAt: string;
             resources: components["schemas"]["CatalogResourceNodeDto"][];
         };
+        /**
+         * @description Where the effective schedule comes from
+         * @enum {string}
+         */
+        OperatingHoursSource: "OWN" | "PARENT" | "GLOBAL" | "ALWAYS_OPEN";
+        OperatingWindowDto: {
+            /** @description 0 is Sunday, 6 is Saturday */
+            dayOfWeek: number;
+            /**
+             * @description Local time HH:mm
+             * @example 08:00
+             */
+            opensAt: string;
+            /**
+             * @description Local time HH:mm, 24:00 allowed
+             * @example 18:00
+             */
+            closesAt: string;
+        };
+        OperatingHoursResponseDto: {
+            /** Format: uuid */
+            resourceId: string | null;
+            /** @description Where the effective schedule comes from */
+            source: components["schemas"]["OperatingHoursSource"];
+            /** @description Effective weekly schedule */
+            windows: components["schemas"]["OperatingWindowDto"][];
+        };
+        ReplaceOperatingHoursDto: {
+            /**
+             * Format: uuid
+             * @description Resource that gets its own schedule. Omit it for the global schedule
+             */
+            resourceId?: string;
+            /** @description Complete weekly schedule. An empty list removes it: the resource then inherits and the global one goes back to open 24/7 */
+            windows: components["schemas"]["OperatingWindowDto"][];
+        };
+        ClosedDateResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            resourceId: string | null;
+            /** @example 2026-12-25 */
+            date: string;
+            name: string;
+        };
+        CreateClosedDateDto: {
+            /**
+             * @description Local date YYYY-MM-DD
+             * @example 2026-12-25
+             */
+            date: string;
+            /** @example Navidad */
+            name: string;
+            /**
+             * Format: uuid
+             * @description Resource that closes that day. Omit it to close every resource
+             */
+            resourceId?: string;
+        };
+        AvailabilitySearchItemDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["ResourceType"];
+            capacity: number;
+            equipment: string | null;
+            building: components["schemas"]["NamedReferenceDto"];
+            /** @description The whole range is inside the operating hours */
+            open: boolean;
+            /** @description Open and with no occupied slot in the range. An AI lab also needs all its laptops free */
+            free: boolean;
+            totalLaptops?: number;
+            freeLaptops?: number;
+        };
+        OpenWindowDto: {
+            /** Format: date-time */
+            start: string;
+            /** Format: date-time */
+            end: string;
+        };
+        LaptopAvailabilityDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @description Start of every occupied slot of the laptop in the range */
+            busySlots: string[];
+            /** @description Ranges in which the laptop can be booked */
+            openWindows: components["schemas"]["OpenWindowDto"][];
+        };
+        ResourceAvailabilityResponseDto: {
+            /** Format: uuid */
+            resourceId: string;
+            name: string;
+            type: components["schemas"]["ResourceType"];
+            /** @description Length of a slot in minutes */
+            slotMinutes: number;
+            /** Format: date-time */
+            from: string;
+            /** Format: date-time */
+            to: string;
+            /** @description Start of every occupied slot of the resource in the range */
+            busySlots: string[];
+            /** @description Ranges inside the range in which the resource can be booked (RF-17) */
+            openWindows: components["schemas"]["OpenWindowDto"][];
+            /** @description Active laptops of an AI lab */
+            laptops: components["schemas"]["LaptopAvailabilityDto"][];
+        };
         ResolveSanctionDto: {
             /** @description Optional comment from the administrator */
             comment?: string;
@@ -1252,6 +1496,181 @@ export interface components {
              * @example Planificación del sprint 3
              */
             justification: string;
+            /**
+             * @description People who will attend. Required for rooms and AI labs, up to the capacity of the resource. Ignored for laptops
+             * @example 6
+             */
+            attendees?: number;
+        };
+        /** @enum {string} */
+        ReservationType: "ROOM" | "FULL_LAB" | "LAPTOP";
+        /** @enum {string} */
+        ReservationPurpose: "INTERNAL_MEETING" | "CLIENT_MEETING" | "TRAINING";
+        ReservationSeriesRefDto: {
+            /** Format: uuid */
+            id: string;
+            /** @description Reservations of the series */
+            occurrenceCount: number;
+        };
+        /** @enum {string} */
+        ReservationStatus: "PENDING_APPROVAL" | "CONFIRMED" | "REJECTED" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW";
+        ReservationResourceDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["ResourceType"];
+            building: components["schemas"]["NamedReferenceDto"];
+            parent: components["schemas"]["NamedReferenceDto"] | null;
+        };
+        ReservationOwnerDto: {
+            /** Format: uuid */
+            id: string;
+            fullName: string;
+            email: string;
+        };
+        /** @enum {string} */
+        CheckInMethod: "BUTTON" | "QR";
+        CheckInResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            reservationId: string;
+            /** Format: uuid */
+            userId: string;
+            /** Format: date-time */
+            checkInDate: string;
+            method: components["schemas"]["CheckInMethod"];
+        };
+        ApprovalApproverDto: {
+            fullName: string;
+        };
+        ReservationApprovalDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            reservationId: string;
+            /** Format: uuid */
+            approverId: string;
+            /** @enum {string} */
+            status: "APPROVED" | "REJECTED";
+            comments: string | null;
+            /** Format: date-time */
+            decisionDate: string;
+            approver: components["schemas"]["ApprovalApproverDto"];
+        };
+        ReservationReallocationDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            reservationId: string;
+            /** Format: uuid */
+            previousResourceId: string;
+            /** Format: uuid */
+            newResourceId: string;
+            /** Format: uuid */
+            responsibleUserId: string;
+            /** Format: date-time */
+            previousStartDateTime: string;
+            /** Format: date-time */
+            previousEndDateTime: string;
+            /** Format: date-time */
+            newStartDateTime: string;
+            /** Format: date-time */
+            newEndDateTime: string;
+            justification: string;
+            /** Format: date-time */
+            reallocationDate: string;
+        };
+        ReservationDetailResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            /** Format: uuid */
+            resourceId: string;
+            reservationType: components["schemas"]["ReservationType"];
+            purpose: components["schemas"]["ReservationPurpose"];
+            justification: string;
+            attendees: number | null;
+            /** @description Position inside its series */
+            occurrenceIndex: number | null;
+            series: components["schemas"]["ReservationSeriesRefDto"] | null;
+            /** Format: date-time */
+            startDateTime: string;
+            /** Format: date-time */
+            endDateTime: string;
+            status: components["schemas"]["ReservationStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            resource: components["schemas"]["ReservationResourceDto"];
+            user: components["schemas"]["ReservationOwnerDto"];
+            checkIn: components["schemas"]["CheckInResponseDto"] | null;
+            approvals: components["schemas"]["ReservationApprovalDto"][];
+            reallocations: components["schemas"]["ReservationReallocationDto"][];
+        };
+        ReservationResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            /** Format: uuid */
+            resourceId: string;
+            reservationType: components["schemas"]["ReservationType"];
+            purpose: components["schemas"]["ReservationPurpose"];
+            justification: string;
+            attendees: number | null;
+            /** @description Position inside its series */
+            occurrenceIndex: number | null;
+            series: components["schemas"]["ReservationSeriesRefDto"] | null;
+            /** Format: date-time */
+            startDateTime: string;
+            /** Format: date-time */
+            endDateTime: string;
+            status: components["schemas"]["ReservationStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            resource: components["schemas"]["ReservationResourceDto"];
+            user: components["schemas"]["ReservationOwnerDto"];
+            checkIn: components["schemas"]["CheckInResponseDto"] | null;
+        };
+        ReservationPageResponseDto: {
+            total: number;
+            page: number;
+            pageSize: number;
+            items: components["schemas"]["ReservationResponseDto"][];
+        };
+        UpdateReservationDto: {
+            /**
+             * Format: uuid
+             * @description A room, an AI lab (books the whole lab) or a laptop. The reservation type is derived from it
+             */
+            resourceId?: string;
+            /**
+             * @description Start in ISO 8601 with time zone
+             * @example 2026-11-12T15:00:00Z
+             */
+            startDateTime?: string;
+            /** @example 2026-11-12T16:00:00Z */
+            endDateTime?: string;
+            /**
+             * @example INTERNAL_MEETING
+             * @enum {string}
+             */
+            purpose?: "INTERNAL_MEETING" | "CLIENT_MEETING" | "TRAINING";
+            /**
+             * @description Detail of the purpose
+             * @example Planificación del sprint 3
+             */
+            justification?: string;
+            /**
+             * @description People who will attend. Required for rooms and AI labs, up to the capacity of the resource. Ignored for laptops
+             * @example 6
+             */
+            attendees?: number;
         };
         CheckInDto: {
             /**
@@ -1260,6 +1679,110 @@ export interface components {
              * @enum {string}
              */
             method: "BUTTON" | "QR";
+        };
+        RecurrenceDto: {
+            /**
+             * @description Repeat every N weeks
+             * @example 1
+             */
+            intervalWeeks: number;
+            /**
+             * @description Weekdays of the series, 0 is Sunday. Must include the day of the first reservation
+             * @example [
+             *       4
+             *     ]
+             */
+            weekdays: number[];
+            /** @description Total reservations of the series, the first one included (up to 12) */
+            occurrenceCount?: number;
+            /**
+             * @description Last local date of the series. A series lasts up to 90 days
+             * @example 2027-01-28
+             */
+            until?: string;
+        };
+        CreateReservationSeriesDto: {
+            /**
+             * Format: uuid
+             * @description A room, an AI lab (books the whole lab) or a laptop. The reservation type is derived from it
+             */
+            resourceId: string;
+            /**
+             * @description Start in ISO 8601 with time zone
+             * @example 2026-11-12T15:00:00Z
+             */
+            startDateTime: string;
+            /** @example 2026-11-12T16:00:00Z */
+            endDateTime: string;
+            /**
+             * @example INTERNAL_MEETING
+             * @enum {string}
+             */
+            purpose: "INTERNAL_MEETING" | "CLIENT_MEETING" | "TRAINING";
+            /**
+             * @description Detail of the purpose
+             * @example Planificación del sprint 3
+             */
+            justification: string;
+            /**
+             * @description People who will attend. Required for rooms and AI labs, up to the capacity of the resource. Ignored for laptops
+             * @example 6
+             */
+            attendees?: number;
+            /** @description The start and end of the body are the first reservation of the series */
+            recurrence: components["schemas"]["RecurrenceDto"];
+        };
+        SeriesOccurrencePreviewDto: {
+            /** @description Position in the series, starting at 1 */
+            index: number;
+            /** Format: date-time */
+            startDateTime: string;
+            /** Format: date-time */
+            endDateTime: string;
+            available: boolean;
+            /** @description Error code that would reject this occurrence */
+            reason: string | null;
+        };
+        SeriesPreviewResponseDto: {
+            occurrences: components["schemas"]["SeriesOccurrencePreviewDto"][];
+        };
+        ReservationSeriesDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            resourceId: string;
+            intervalWeeks: number;
+            weekdays: number[];
+            /** Format: date-time */
+            firstStartDateTime: string;
+            durationMinutes: number;
+            /** @description Reservations created for the series */
+            occurrenceCount: number;
+            /** Format: date-time */
+            cancelledAt: string | null;
+        };
+        SkippedOccurrenceDto: {
+            startDateTime: string;
+            endDateTime: string;
+            /** @description Error code that rejected the occurrence */
+            reason: string;
+        };
+        SeriesCreatedResponseDto: {
+            series: components["schemas"]["ReservationSeriesDto"];
+            created: components["schemas"]["ReservationResponseDto"][];
+            /** @description Occurrences that were not created */
+            skipped: components["schemas"]["SkippedOccurrenceDto"][];
+        };
+        SeriesDetailResponseDto: {
+            series: components["schemas"]["ReservationSeriesDto"];
+            occurrences: components["schemas"]["ReservationResponseDto"][];
+        };
+        SeriesCancelResponseDto: {
+            series: components["schemas"]["ReservationSeriesDto"];
+            /** @description Reservations cancelled */
+            cancelled: number;
+            /** @description Reservations kept because they start in less than 24 h */
+            kept: number;
         };
         DecideApprovalDto: {
             /** @enum {string} */
@@ -3337,6 +3860,112 @@ export interface operations {
             };
         };
     };
+    OperatingHoursController_read: {
+        parameters: {
+            query?: {
+                /** @description Resource to read. Omit it for the global schedule */
+                resourceId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatingHoursResponseDto"];
+                };
+            };
+        };
+    };
+    OperatingHoursController_replace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceOperatingHoursDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatingHoursResponseDto"];
+                };
+            };
+        };
+    };
+    OperatingHoursController_listClosedDates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClosedDateResponseDto"][];
+                };
+            };
+        };
+    };
+    OperatingHoursController_createClosedDate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateClosedDateDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClosedDateResponseDto"];
+                };
+            };
+        };
+    };
+    OperatingHoursController_deleteClosedDate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     AvailabilityController_search: {
         parameters: {
             query: {
@@ -3360,7 +3989,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AvailabilitySearchItemDto"][];
+                };
             };
         };
     };
@@ -3384,7 +4015,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ResourceAvailabilityResponseDto"];
+                };
             };
         };
     };
@@ -3472,7 +4105,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ReservationDetailResponseDto"];
                 };
             };
         };
@@ -3500,7 +4133,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ReservationPageResponseDto"];
+                };
             };
         };
     };
@@ -3520,7 +4155,32 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ReservationDetailResponseDto"];
+                };
+            };
+        };
+    };
+    ReservationsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateReservationDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservationDetailResponseDto"];
                 };
             };
         };
@@ -3541,7 +4201,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ReservationDetailResponseDto"];
                 };
             };
         };
@@ -3566,7 +4226,95 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": components["schemas"]["ReservationDetailResponseDto"];
+                };
+            };
+        };
+    };
+    ReservationSeriesController_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateReservationSeriesDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeriesPreviewResponseDto"];
+                };
+            };
+        };
+    };
+    ReservationSeriesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateReservationSeriesDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeriesCreatedResponseDto"];
+                };
+            };
+        };
+    };
+    ReservationSeriesController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeriesDetailResponseDto"];
+                };
+            };
+        };
+    };
+    ReservationSeriesController_cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeriesCancelResponseDto"];
                 };
             };
         };

@@ -48,3 +48,8 @@ export function isValidAssignment(assignments: readonly RoleAssignment[]): boole
 export function canHaveAssociates(roles: readonly Role[]): boolean {
   return roles.some((role) => MANAGER_ROLES.includes(role));
 }
+
+export function canManageUser(actorRoles: readonly Role[], targetRoles: readonly Role[]): boolean {
+  if (actorRoles.includes('SUPERADMIN')) return true;
+  return !targetRoles.some((role) => PRIVILEGED_ROLES.includes(role));
+}

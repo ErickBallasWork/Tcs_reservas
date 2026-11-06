@@ -156,3 +156,47 @@ export const accessRequestLabels = {
   next: 'Siguiente',
   page: (page: number, total: number) => `Página ${page} de ${total}`,
 };
+
+export const userLabels = {
+  searchLabel: 'Buscar',
+  searchPlaceholder: 'Nombre o correo',
+  loading: 'Cargando…',
+  retry: 'Reintentar',
+  noResults: 'No hay usuarios que coincidan.',
+  active: 'Activo',
+  inactive: 'Desactivado',
+  lastLogin: (date: string) => `Último ingreso: ${date}`,
+  neverLoggedIn: 'Todavía no ingresó',
+  editRoles: 'Editar roles',
+  editRolesTitle: 'Editar roles',
+  associates: 'Asociados a cargo',
+  devices: 'Dispositivos',
+  save: 'Guardar',
+  saving: 'Guardando…',
+  cancel: 'Cancelar',
+  close: 'Cerrar',
+  deactivate: {
+    action: 'Desactivar',
+    title: 'Desactivar usuario',
+    description: (name: string) =>
+      `${name} no podrá ingresar y se cerrarán sus sesiones en todos los dispositivos.`,
+    confirm: 'Desactivar',
+  },
+  activate: {
+    action: 'Activar',
+    title: 'Activar usuario',
+    description: (name: string) =>
+      `${name} podrá volver a ingresar, pero deberá pedir acceso de nuevo en sus dispositivos.`,
+    confirm: 'Activar',
+  },
+  associatesTitle: 'Asociados a cargo',
+  associatesIntro: (name: string) => `Elige las personas que ve ${name} en sus paneles.`,
+  selectedCount: (count: number) =>
+    `${count} ${count === 1 ? 'persona seleccionada' : 'personas seleccionadas'}`,
+  devicesTitle: 'Dispositivos aprobados',
+  noDevices: 'Este usuario no tiene dispositivos aprobados.',
+  unnamedDevice: 'Dispositivo sin nombre',
+  lastUsed: (date: string) => `Último uso: ${date}`,
+  revoked: 'Revocado',
+  revoke: 'Revocar',
+};

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   canGrantRole,
   canHaveAssociates,
+  canManageUser,
   isValidAssignment,
   setBuilding,
   toggleRole,
@@ -65,5 +66,17 @@ describe('canHaveAssociates', () => {
     expect(canHaveAssociates(['ASOCIADO', 'LIDER'])).toBe(true);
     expect(canHaveAssociates(['SPOC_ADMIN'])).toBe(true);
     expect(canHaveAssociates(['ASOCIADO', 'ADMIN', 'SPOC_EDIFICIO'])).toBe(false);
+  });
+});
+
+describe('canManageUser', () => {
+  it('lets a SUPERADMIN manage anyone', () => {
+    expect(canManageUser(['SUPERADMIN'], ['SUPERADMIN'])).toBe(true);
+  });
+
+  it('keeps an ADMIN away from ADMIN and SUPERADMIN users', () => {
+    expect(canManageUser(['ADMIN'], ['ASOCIADO', 'LIDER'])).toBe(true);
+    expect(canManageUser(['ADMIN'], ['ADMIN'])).toBe(false);
+    expect(canManageUser(['ADMIN'], ['SUPERADMIN'])).toBe(false);
   });
 });

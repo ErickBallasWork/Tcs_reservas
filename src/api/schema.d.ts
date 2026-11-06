@@ -897,7 +897,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Historial filtrable de solicitudes (HU-16) */
+        /**
+         * Historial filtrable de solicitudes de los asociados a cargo (RF-09)
+         * @description SPOC_ADMIN y LIDER ven solo a sus asociados a cargo. ADMIN y SUPERADMIN ven todo. Cada consulta no automática queda en la auditoría.
+         */
         get: operations["DashboardController_reservations"];
         put?: never;
         post?: never;
@@ -914,7 +917,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Totales por estado, motivo y tipo; tasa de No-Show (HU-16) */
+        /**
+         * Totales por estado, motivo y tipo; tasa de No-Show (RF-09)
+         * @description Con el mismo alcance por rol que el historial.
+         */
         get: operations["DashboardController_metrics"];
         put?: never;
         post?: never;
@@ -1874,6 +1880,20 @@ export interface components {
              * @example Visita de cliente en la Sala Pichincha
              */
             justification: string;
+        };
+        DashboardMetricsResponseDto: {
+            total: number;
+            byStatus: {
+                [key: string]: number;
+            };
+            byPurpose: {
+                [key: string]: number;
+            };
+            byReservationType: {
+                [key: string]: number;
+            };
+            /** @description NO_SHOW over CHECKED_IN + NO_SHOW, from 0 to 1 */
+            noShowRate: number;
         };
     };
     responses: never;
@@ -4485,13 +4505,15 @@ export interface operations {
                 pageSize?: number;
                 /** @description Range start (ISO 8601), applied to the reservation start */
                 from?: string;
-                /** @description Range end (ISO 8601) */
+                /** @description Range end (ISO 8601), exclusive */
                 to?: string;
+                buildingId?: string;
                 status?: "PENDING_APPROVAL" | "CONFIRMED" | "REJECTED" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW";
                 purpose?: "INTERNAL_MEETING" | "CLIENT_MEETING" | "TRAINING";
-                buildingId?: string;
                 userId?: string;
                 resourceId?: string;
+                /** @description Set on automatic refreshes so they are not written to the audit log */
+                refresh?: "true";
             };
             header?: never;
             path?: never;
@@ -4503,7 +4525,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ReservationPageResponseDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
             };
         };
     };
@@ -4512,7 +4563,7 @@ export interface operations {
             query?: {
                 /** @description Range start (ISO 8601), applied to the reservation start */
                 from?: string;
-                /** @description Range end (ISO 8601) */
+                /** @description Range end (ISO 8601), exclusive */
                 to?: string;
                 buildingId?: string;
             };
@@ -4526,7 +4577,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["DashboardMetricsResponseDto"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
             };
         };
     };

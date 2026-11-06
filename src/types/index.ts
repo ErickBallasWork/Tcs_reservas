@@ -1,5 +1,3 @@
-export type Role = 'associate' | 'admin' | 'admin_spoc' | 'knowledge_leader' | 'building_spoc';
-
 export type ResourceType = 'room' | 'ai_lab' | 'laptop';
 
 export type ReservationStatus = 'confirmed' | 'pending' | 'rejected' | 'cancelled';

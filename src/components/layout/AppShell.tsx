@@ -5,10 +5,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { roleLabels } from '@/lib/labels';
-import { homeByRole, navByRole } from '@/lib/nav';
+import { homeForRoles, navForRoles } from '@/lib/nav';
 import { REQUIRE_NOTIFICATIONS, useNotificationPermission } from '@/lib/notifications';
 import { cn } from '@/lib/utils';
-import type { Role } from '@/types';
+import type { Role } from '@/api/types';
 
 const MOBILE_SLOTS = 4;
 
@@ -43,7 +43,7 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
 
   if (!hasAccess) return null;
 
-  const items = navByRole[role];
+  const items = navForRoles([role]);
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
   const overflow = items.length > MOBILE_SLOTS;
@@ -53,7 +53,7 @@ export function AppShell({ title, mobileTitle, children }: AppShellProps) {
   const handleRoleChange = (next: Role) => {
     setRole(next);
     setMoreOpen(false);
-    router.push(homeByRole[next]);
+    router.push(homeForRoles([next]));
   };
 
   const handleLogout = () => {

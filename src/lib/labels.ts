@@ -1,5 +1,5 @@
-import type { ResourceType as ApiResourceType } from '@/api/types';
-import type { ReservationReason, ReservationStatus, ResourceType, Role } from '@/types';
+import type { ResourceType as ApiResourceType, Role } from '@/api/types';
+import type { ReservationReason, ReservationStatus, ResourceType } from '@/types';
 
 export const appLabels = {
   title: 'Reservas TCS · Banco Pichincha',
@@ -42,9 +42,10 @@ export const catalogLabels = {
 };
 
 export const roleLabels: Record<Role, string> = {
-  associate: 'Asociado',
-  admin: 'Administrador',
-  admin_spoc: 'SPOC Administrativo / Líder',
-  knowledge_leader: 'Líder de Conocimiento',
-  building_spoc: 'SPOC de Edificio',
+  ASOCIADO: 'Asociado',
+  ADMIN: 'Administrador',
+  SPOC_ADMIN: 'SPOC Administrativo',
+  LIDER: 'Líder de Conocimiento',
+  SPOC_EDIFICIO: 'SPOC de Edificio',
+  SUPERADMIN: 'Superadministrador',
 };

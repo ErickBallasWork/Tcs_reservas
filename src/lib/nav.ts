@@ -1,4 +1,4 @@
-import type { Role } from '@/types';
+import type { Role } from '@/api/types';
 
 export interface NavItem {
   href: string;
@@ -6,32 +6,62 @@ export interface NavItem {
   shortLabel: string;
 }
 
+const ACCESS_REQUESTS: NavItem = {
+  href: '/admin/access-requests',
+  label: 'Solicitudes de acceso',
+  shortLabel: 'Accesos',
+};
+
+const USERS: NavItem = { href: '/admin/users', label: 'Usuarios y roles', shortLabel: 'Usuarios' };
+
+const CATALOG: NavItem = { href: '/catalog', label: 'Catálogo', shortLabel: 'Catálogo' };
+
 export const navByRole: Record<Role, NavItem[]> = {
-  associate: [
+  ASOCIADO: [
     { href: '/availability', label: 'Disponibilidad', shortLabel: 'Disponib.' },
-    { href: '/catalog', label: 'Catálogo', shortLabel: 'Catálogo' },
+    CATALOG,
     { href: '/my-reservations', label: 'Mis reservas', shortLabel: 'Mis reservas' },
     { href: '/notifications', label: 'Notificaciones', shortLabel: 'Avisos' },
   ],
-  admin: [
+  ADMIN: [
+    USERS,
     { href: '/admin/buildings', label: 'Edificios', shortLabel: 'Edificios' },
     { href: '/admin/resources', label: 'Salas y laboratorios', shortLabel: 'Salas' },
     { href: '/admin/catalog', label: 'Catálogo y laptops', shortLabel: 'Catálogo' },
     { href: '/admin/sanctions', label: 'Sanciones y auditoría', shortLabel: 'Sanciones' },
     { href: '/admin/reports', label: 'Reportes', shortLabel: 'Reportes' },
   ],
-  admin_spoc: [{ href: '/leader/dashboard', label: 'Panel de seguimiento', shortLabel: 'Panel' }],
-  knowledge_leader: [
+  SPOC_ADMIN: [{ href: '/leader/dashboard', label: 'Panel de seguimiento', shortLabel: 'Panel' }],
+  LIDER: [
     { href: '/leader/inbox', label: 'Bandeja de entrenamientos', shortLabel: 'Bandeja' },
     { href: '/leader/dashboard', label: 'Panel de seguimiento', shortLabel: 'Panel' },
   ],
-  building_spoc: [{ href: '/spoc/agenda', label: 'Agenda de salas', shortLabel: 'Agenda' }],
+  SPOC_EDIFICIO: [{ href: '/spoc/agenda', label: 'Agenda de salas', shortLabel: 'Agenda' }],
+  SUPERADMIN: [ACCESS_REQUESTS, USERS, CATALOG],
 };
 
-export const homeByRole: Record<Role, string> = {
-  associate: '/availability',
-  admin: '/admin/buildings',
-  admin_spoc: '/leader/dashboard',
-  knowledge_leader: '/leader/inbox',
-  building_spoc: '/spoc/agenda',
-};
+const ROLE_PRIORITY: readonly Role[] = [
+  'SUPERADMIN',
+  'ADMIN',
+  'LIDER',
+  'SPOC_ADMIN',
+  'SPOC_EDIFICIO',
+  'ASOCIADO',
+];
+
+export function navForRoles(roles: readonly Role[]): NavItem[] {
+  const seen = new Set<string>();
+  return ROLE_PRIORITY.filter((role) => roles.includes(role))
+    .flatMap((role) => navByRole[role])
+    .filter((item) => !seen.has(item.href) && seen.add(item.href));
+}
+
+export function homeForRoles(roles: readonly Role[]): string {
+  return navForRoles(roles)[0]?.href ?? '/availability';
+}
+
+export function canOpen(roles: readonly Role[], pathname: string): boolean {
+  return navForRoles(roles).some(
+    (item) => pathname === item.href || pathname.startsWith(item.href + '/'),
+  );
+}

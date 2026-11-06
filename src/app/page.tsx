@@ -3,14 +3,14 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { homeByRole } from '@/lib/nav';
+import { homeForRoles } from '@/lib/nav';
 
 export default function Home() {
   const { role } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    router.replace(homeByRole[role]);
+    router.replace(homeForRoles([role]));
   }, [role, router]);
 
   return null;

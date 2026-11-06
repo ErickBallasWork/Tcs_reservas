@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useMemo, useSyncExternalStore } from 'react';
 import { readStorageItem, subscribeToStorage, writeStorageItem } from '@/lib/browser-storage';
 import { roleLabels } from '@/lib/labels';
-import type { Role } from '@/types';
+import type { Role } from '@/api/types';
 
 interface Session {
   email: string;
@@ -22,7 +22,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 const ROLE_KEY = 'mock-role';
 const SESSION_KEY = 'mock-session';
-const DEFAULT_ROLE: Role = 'associate';
+const DEFAULT_ROLE: Role = 'ASOCIADO';
 
 function isRole(value: string | null): value is Role {
   return value !== null && Object.hasOwn(roleLabels, value);
